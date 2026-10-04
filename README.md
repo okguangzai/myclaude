@@ -56,4 +56,5 @@ npm.cmd run build
 
 私有仓库：<https://gitlab.csghome.fun/csg/myclaude>。服务器入口：<https://gitlab.csghome.fun/myclaude/>。
 `main` 推送触发测试、镜像构建和 Kubernetes 发布，详见 [GitLab 部署与运维](docs/GitLab部署与运维.md)。
+Linux 流水线已有 **122 项测试通过**；云模型、Embedding、Qdrant 与页面访问验证见 [部署验收记录](docs/部署验收记录.md)。
 

@@ -16,7 +16,7 @@ flowchart LR
   E --> F
   F --> G[Harbor 私有 myclaude/app]
   G --> H[Kubernetes 单实例发布]
-  H --> I[就绪探针与应用健康检查]
+  H --> I[就绪探针 / API / HTML 与静态资源检查]
   I -->|失败| J[恢复上一镜像]
   U[浏览器] --> T[Traefik TLS 与密码认证]
   T --> H
@@ -67,3 +67,5 @@ kubectl -n myclaude rollout status deployment/myclaude --timeout=180s
 ## 范围说明
 
 CI/CD 自动发布不代表 Rust 全部行为已经逐项等价。功能迁移和仍未完成的兼容项以 [全量迁移进度](全量迁移进度.md) 为准。
+
+真实流水线、模型、检索和访问保护的验证见 [部署验收记录](部署验收记录.md)。

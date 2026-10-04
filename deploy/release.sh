@@ -27,6 +27,19 @@ fi
 # Configuration and credentials are pre-provisioned, never managed by job artifacts.
 sed "s|IMAGE_PLACEHOLDER|$IMAGE_REPOSITORY:$CI_COMMIT_SHA|g" deploy/kubernetes.yaml | kubectl apply -f -
 kubectl -n "$ns" rollout status deployment/myclaude --timeout=300s
-kubectl -n "$ns" exec deployment/myclaude -- python -c 'import json,urllib.request; r=json.load(urllib.request.urlopen("http://127.0.0.1:8000/api/health")); assert r["ok"]; print(r)'
+kubectl -n "$ns" exec deployment/myclaude -- python -c '
+import json, os, re, urllib.request
+base = "http://127.0.0.1:8000"
+health = json.load(urllib.request.urlopen(base + "/api/health", timeout=10))
+assert health["ok"]
+html = urllib.request.urlopen(base + "/", timeout=10).read().decode()
+assets = re.findall(r"(?:src|href)=\"([^\"]*/assets/[^\"]+)\"", html)
+assert len(assets) >= 2, "Frontend assets missing from index"
+prefix = os.environ.get("MYCLAUDE_ROOT_PATH", "").rstrip("/")
+for asset in assets:
+    response = urllib.request.urlopen(base + asset.removeprefix(prefix), timeout=10)
+    assert response.status == 200 and "text/html" not in response.headers.get("Content-Type", "")
+print({**health, "frontend_assets": len(assets)})
+'
 printf 'SUCCESS commit=%s image=%s:%s\n' "$CI_COMMIT_SHA" "$IMAGE_REPOSITORY" "$CI_COMMIT_SHA" > deployment-result.txt
 trap - EXIT
