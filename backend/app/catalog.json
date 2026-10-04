@@ -1,0 +1,2472 @@
+{
+  "revision": "08106b0c3771ef5b4a5aa176acccd460e88b7325",
+  "tools": [
+    {
+      "description": "Execute a shell command in the current workspace.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "allowedMounts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "command": {
+            "type": "string"
+          },
+          "dangerouslyDisableSandbox": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "filesystemMode": {
+            "enum": [
+              "off",
+              "workspace-only",
+              "allow-list"
+            ],
+            "type": "string"
+          },
+          "isolateNetwork": {
+            "type": "boolean"
+          },
+          "namespaceRestrictions": {
+            "type": "boolean"
+          },
+          "run_in_background": {
+            "type": "boolean"
+          },
+          "timeout": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "type": "object"
+      },
+      "name": "bash",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Read a text file from the workspace.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offset": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "read_file",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Write a text file in the workspace.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ],
+        "type": "object"
+      },
+      "name": "write_file",
+      "required_permission": "workspace-write"
+    },
+    {
+      "description": "Replace text in a workspace file.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "new_string": {
+            "type": "string"
+          },
+          "old_string": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "replace_all": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "old_string",
+          "new_string"
+        ],
+        "type": "object"
+      },
+      "name": "edit_file",
+      "required_permission": "workspace-write"
+    },
+    {
+      "description": "Find files by glob pattern.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pattern"
+        ],
+        "type": "object"
+      },
+      "name": "glob_search",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Search file contents with a regex pattern.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "-A": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "-B": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "-C": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "-i": {
+            "type": "boolean"
+          },
+          "-n": {
+            "type": "boolean"
+          },
+          "context": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "glob": {
+            "type": "string"
+          },
+          "head_limit": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "multiline": {
+            "type": "boolean"
+          },
+          "offset": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "output_mode": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pattern"
+        ],
+        "type": "object"
+      },
+      "name": "grep_search",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Fetch a URL, convert it into readable text, and answer a prompt about it.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "url": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "prompt"
+        ],
+        "type": "object"
+      },
+      "name": "WebFetch",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Search the web for current information and return cited results.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "blocked_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "query": {
+            "minLength": 2,
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "WebSearch",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Update the structured task list for the current session.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "todos": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "activeForm": {
+                  "type": "string"
+                },
+                "content": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "pending",
+                    "in_progress",
+                    "completed"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "content",
+                "activeForm",
+                "status"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "todos"
+        ],
+        "type": "object"
+      },
+      "name": "TodoWrite",
+      "required_permission": "workspace-write"
+    },
+    {
+      "description": "Load a local skill definition and its instructions.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "args": {
+            "type": "string"
+          },
+          "skill": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "skill"
+        ],
+        "type": "object"
+      },
+      "name": "Skill",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Launch a specialized agent task and persist its handoff metadata.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "subagent_type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "prompt"
+        ],
+        "type": "object"
+      },
+      "name": "Agent",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Search for deferred or specialized tools by exact name or keywords.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "max_results": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "ToolSearch",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Replace, insert, or delete a cell in a Jupyter notebook.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "cell_id": {
+            "type": "string"
+          },
+          "cell_type": {
+            "enum": [
+              "code",
+              "markdown"
+            ],
+            "type": "string"
+          },
+          "edit_mode": {
+            "enum": [
+              "replace",
+              "insert",
+              "delete"
+            ],
+            "type": "string"
+          },
+          "new_source": {
+            "type": "string"
+          },
+          "notebook_path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "notebook_path"
+        ],
+        "type": "object"
+      },
+      "name": "NotebookEdit",
+      "required_permission": "workspace-write"
+    },
+    {
+      "description": "Wait for a specified duration without holding a shell process.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "duration_ms": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "duration_ms"
+        ],
+        "type": "object"
+      },
+      "name": "Sleep",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Send a message to the user.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "attachments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "normal",
+              "proactive"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "status"
+        ],
+        "type": "object"
+      },
+      "name": "SendUserMessage",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Get or set Claude Code settings.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "setting": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "string",
+              "boolean",
+              "number"
+            ]
+          }
+        },
+        "required": [
+          "setting"
+        ],
+        "type": "object"
+      },
+      "name": "Config",
+      "required_permission": "workspace-write"
+    },
+    {
+      "description": "Enable a worktree-local planning mode override and remember the previous local setting for ExitPlanMode.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "name": "EnterPlanMode",
+      "required_permission": "workspace-write"
+    },
+    {
+      "description": "Restore or clear the worktree-local planning mode override created by EnterPlanMode.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "name": "ExitPlanMode",
+      "required_permission": "workspace-write"
+    },
+    {
+      "description": "Return structured output in the requested format.",
+      "input_schema": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "name": "StructuredOutput",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Execute code in a REPL-like subprocess.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "timeout_ms": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "language"
+        ],
+        "type": "object"
+      },
+      "name": "REPL",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Execute a PowerShell command with optional timeout.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "run_in_background": {
+            "type": "boolean"
+          },
+          "timeout": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "type": "object"
+      },
+      "name": "PowerShell",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Ask the user a question and wait for their response.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "question": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "type": "object"
+      },
+      "name": "AskUserQuestion",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Create a background task that runs in a separate subprocess.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "type": "object"
+      },
+      "name": "TaskCreate",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Create a background task from a structured task packet.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance_tests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "branch_policy": {
+            "type": "string"
+          },
+          "commit_policy": {
+            "type": "string"
+          },
+          "escalation_policy": {
+            "type": "string"
+          },
+          "objective": {
+            "type": "string"
+          },
+          "repo": {
+            "type": "string"
+          },
+          "reporting_contract": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "objective",
+          "scope",
+          "repo",
+          "branch_policy",
+          "acceptance_tests",
+          "commit_policy",
+          "reporting_contract",
+          "escalation_policy"
+        ],
+        "type": "object"
+      },
+      "name": "RunTaskPacket",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Get the status and details of a background task by ID.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "task_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id"
+        ],
+        "type": "object"
+      },
+      "name": "TaskGet",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "List all background tasks and their current status.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "name": "TaskList",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Stop a running background task by ID.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "task_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id"
+        ],
+        "type": "object"
+      },
+      "name": "TaskStop",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Send a message or update to a running background task.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "message"
+        ],
+        "type": "object"
+      },
+      "name": "TaskUpdate",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Retrieve the output produced by a background task.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "task_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id"
+        ],
+        "type": "object"
+      },
+      "name": "TaskOutput",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Create a coding worker boot session with trust-gate and prompt-delivery guards.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "auto_recover_prompt_misdelivery": {
+            "type": "boolean"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "trusted_roots": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "cwd"
+        ],
+        "type": "object"
+      },
+      "name": "WorkerCreate",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Fetch the current worker boot state, last error, and event history.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "worker_id"
+        ],
+        "type": "object"
+      },
+      "name": "WorkerGet",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Feed a terminal snapshot into worker boot detection to resolve trust gates, ready handshakes, and prompt misdelivery.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "screen_text": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "worker_id",
+          "screen_text"
+        ],
+        "type": "object"
+      },
+      "name": "WorkerObserve",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Resolve a detected trust prompt so worker boot can continue.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "worker_id"
+        ],
+        "type": "object"
+      },
+      "name": "WorkerResolveTrust",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Return the current ready-handshake verdict for a coding worker.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "worker_id"
+        ],
+        "type": "object"
+      },
+      "name": "WorkerAwaitReady",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Send a task prompt only after the worker reaches ready_for_prompt; can replay a recovered prompt.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "task_receipt": {
+            "additionalProperties": false,
+            "properties": {
+              "expected_artifacts": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "objective_preview": {
+                "type": "string"
+              },
+              "repo": {
+                "type": "string"
+              },
+              "source_surface": {
+                "type": "string"
+              },
+              "task_kind": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "repo",
+              "task_kind",
+              "source_surface",
+              "objective_preview"
+            ],
+            "type": "object"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "worker_id"
+        ],
+        "type": "object"
+      },
+      "name": "WorkerSendPrompt",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Restart worker boot state after a failed or stale startup.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "worker_id"
+        ],
+        "type": "object"
+      },
+      "name": "WorkerRestart",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Terminate a worker and mark the lane finished from the control plane.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "worker_id"
+        ],
+        "type": "object"
+      },
+      "name": "WorkerTerminate",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Report session completion to the worker, classifying finish_reason into Finished or Failed (provider-degraded). Use after the opencode session completes to advance the worker to its terminal state.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "finish_reason": {
+            "type": "string"
+          },
+          "tokens_output": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "worker_id",
+          "finish_reason",
+          "tokens_output"
+        ],
+        "type": "object"
+      },
+      "name": "WorkerObserveCompletion",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Create a team of sub-agents for parallel task execution.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "prompt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "prompt"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "tasks"
+        ],
+        "type": "object"
+      },
+      "name": "TeamCreate",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Delete a team and stop all its running tasks.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "team_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "team_id"
+        ],
+        "type": "object"
+      },
+      "name": "TeamDelete",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Create a scheduled recurring task.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "schedule": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schedule",
+          "prompt"
+        ],
+        "type": "object"
+      },
+      "name": "CronCreate",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Delete a scheduled recurring task by ID.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "cron_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cron_id"
+        ],
+        "type": "object"
+      },
+      "name": "CronDelete",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "List all scheduled recurring tasks.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "name": "CronList",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Query Language Server Protocol for code intelligence (symbols, references, diagnostics).",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "symbols",
+              "references",
+              "diagnostics",
+              "definition",
+              "hover"
+            ],
+            "type": "string"
+          },
+          "character": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "line": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "path": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "LSP",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "List available resources from connected MCP servers.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "server": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "ListMcpResources",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Read a specific resource from an MCP server by URI.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "server": {
+            "type": "string"
+          },
+          "uri": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "uri"
+        ],
+        "type": "object"
+      },
+      "name": "ReadMcpResource",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Authenticate with an MCP server that requires OAuth or credentials.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "server": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "server"
+        ],
+        "type": "object"
+      },
+      "name": "McpAuth",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Trigger a remote action or webhook endpoint.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "headers": {
+            "type": "object"
+          },
+          "method": {
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "DELETE"
+            ],
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "name": "RemoteTrigger",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Execute a tool provided by a connected MCP server.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "type": "object"
+          },
+          "server": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "server",
+          "tool"
+        ],
+        "type": "object"
+      },
+      "name": "MCP",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Test-only tool for verifying permission enforcement behavior.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "TestingPermission",
+      "required_permission": "danger-full-access"
+    },
+    {
+      "description": "Show the working tree status (branch, staged, unstaged, untracked). Equivalent to 'git status --short --branch'. Use this instead of running git status via bash to get structured, parseable output.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "short": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "name": "GitStatus",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Show changes between commits, the index, and the working tree. Supports staged changes ('git diff --cached'), specific paths, commit ranges, and comparing two commits. Use this instead of running git diff via bash to get structured output.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "commit": {
+            "type": "string"
+          },
+          "commit2": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "staged": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "name": "GitDiff",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Show commit history. Supports limiting count, filtering by author/date/path, and oneline format. Defaults to the last 20 commits. Use this instead of running git log via bash to get structured output.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "author": {
+            "type": "string"
+          },
+          "count": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "oneline": {
+            "type": "boolean"
+          },
+          "path": {
+            "type": "string"
+          },
+          "since": {
+            "type": "string"
+          },
+          "until": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "GitLog",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Show a commit, tag, or tree object. Use format to control output: patch (default) shows the full diff, stat shows a diffstat summary, and metadata shows commit info without the diff. Supports showing a specific file at a commit (commit:path) for patch/stat output. Use this instead of running git show via bash to get structured output.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "commit": {
+            "type": "string"
+          },
+          "format": {
+            "enum": [
+              "patch",
+              "stat",
+              "metadata"
+            ],
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "stat": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "commit"
+        ],
+        "type": "object"
+      },
+      "name": "GitShow",
+      "required_permission": "read-only"
+    },
+    {
+      "description": "Show what revision and author last modified each line of a file. Supports line range filtering (start_line, end_line). Use this instead of running git blame via bash to get structured output.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "end_line": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "path": {
+            "type": "string"
+          },
+          "start_line": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "GitBlame",
+      "required_permission": "read-only"
+    }
+  ],
+  "commands": [
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "help",
+      "resume_supported": true,
+      "summary": "Show available slash commands"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "status",
+      "resume_supported": true,
+      "summary": "Show current session status"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "sandbox",
+      "resume_supported": true,
+      "summary": "Show sandbox isolation status"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "compact",
+      "resume_supported": true,
+      "summary": "Compact local session history"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[model]",
+      "implemented": true,
+      "name": "model",
+      "resume_supported": false,
+      "summary": "Show or switch the active model"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[read-only|workspace-write|danger-full-access]",
+      "implemented": true,
+      "name": "permissions",
+      "resume_supported": false,
+      "summary": "Show or switch the active permission mode"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[--confirm]",
+      "implemented": true,
+      "name": "clear",
+      "resume_supported": true,
+      "summary": "Start a fresh local session"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "cost",
+      "resume_supported": true,
+      "summary": "Show cumulative token usage for this session"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<session-path>",
+      "implemented": true,
+      "name": "resume",
+      "resume_supported": false,
+      "summary": "Load a saved session into the REPL"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[env|hooks|model|plugins]",
+      "implemented": true,
+      "name": "config",
+      "resume_supported": true,
+      "summary": "Inspect Claude config files or merged sections"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[list|show <server>|help]",
+      "implemented": true,
+      "name": "mcp",
+      "resume_supported": true,
+      "summary": "Inspect configured MCP servers"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "memory",
+      "resume_supported": true,
+      "summary": "Inspect loaded Claude instruction memory files"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "init",
+      "resume_supported": true,
+      "summary": "Create a starter CLAUDE.md for this repo"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "diff",
+      "resume_supported": true,
+      "summary": "Show git diff for current workspace changes"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "version",
+      "resume_supported": true,
+      "summary": "Show CLI version and build information"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[scope]",
+      "implemented": true,
+      "name": "bughunter",
+      "resume_supported": false,
+      "summary": "Inspect the codebase for likely bugs"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "commit",
+      "resume_supported": false,
+      "summary": "Generate a commit message and create a git commit"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[context]",
+      "implemented": true,
+      "name": "pr",
+      "resume_supported": false,
+      "summary": "Draft or create a pull request from the conversation"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[context]",
+      "implemented": true,
+      "name": "issue",
+      "resume_supported": false,
+      "summary": "Draft or create a GitHub issue from the conversation"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[task]",
+      "implemented": true,
+      "name": "ultraplan",
+      "resume_supported": false,
+      "summary": "Run a deep planning prompt with multi-step reasoning"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<symbol-or-path>",
+      "implemented": true,
+      "name": "teleport",
+      "resume_supported": false,
+      "summary": "Jump to a file or symbol by searching the workspace"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "debug-tool-call",
+      "resume_supported": false,
+      "summary": "Replay the last tool call with debug details"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[file]",
+      "implemented": true,
+      "name": "export",
+      "resume_supported": true,
+      "summary": "Export the current conversation to a file"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[list|exists <session-id>|switch <session-id>|fork [branch-name]|delete <session-id> [--force]]",
+      "implemented": true,
+      "name": "session",
+      "resume_supported": true,
+      "summary": "List, check, switch, fork, or delete managed local sessions"
+    },
+    {
+      "aliases": [
+        "plugins",
+        "marketplace"
+      ],
+      "argument_hint": "[list|install <path>|enable <name>|disable <name>|uninstall <id>|update <id>]",
+      "implemented": true,
+      "name": "plugin",
+      "resume_supported": false,
+      "summary": "Manage Claw Code plugins"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[list|show <name>|create <name>|help]",
+      "implemented": true,
+      "name": "agents",
+      "resume_supported": true,
+      "summary": "List, show, or create configured agents"
+    },
+    {
+      "aliases": [
+        "skill"
+      ],
+      "argument_hint": "[list|show <name>|install <path>|uninstall <name>|help|<skill> [args]]",
+      "implemented": true,
+      "name": "skills",
+      "resume_supported": true,
+      "summary": "List, install, uninstall, or invoke available skills"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "doctor",
+      "resume_supported": true,
+      "summary": "Diagnose setup issues and environment health"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[on|off]",
+      "implemented": false,
+      "name": "plan",
+      "resume_supported": true,
+      "summary": "Toggle or inspect planning mode"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[scope]",
+      "implemented": false,
+      "name": "review",
+      "resume_supported": false,
+      "summary": "Run a code review on current changes"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[list|get <id>|stop <id>]",
+      "implemented": false,
+      "name": "tasks",
+      "resume_supported": true,
+      "summary": "List and manage background tasks"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[theme-name]",
+      "implemented": false,
+      "name": "theme",
+      "resume_supported": true,
+      "summary": "Switch the terminal color theme"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "vim",
+      "resume_supported": true,
+      "summary": "Toggle vim keybinding mode"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[on|off]",
+      "implemented": false,
+      "name": "voice",
+      "resume_supported": false,
+      "summary": "Toggle voice input mode"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "upgrade",
+      "resume_supported": false,
+      "summary": "Check for and install CLI updates"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "usage",
+      "resume_supported": true,
+      "summary": "Show detailed API usage statistics"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "stats",
+      "resume_supported": true,
+      "summary": "Show workspace and session statistics"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<name>",
+      "implemented": false,
+      "name": "rename",
+      "resume_supported": false,
+      "summary": "Rename the current session"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[last|all]",
+      "implemented": false,
+      "name": "copy",
+      "resume_supported": true,
+      "summary": "Copy conversation or output to clipboard"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "share",
+      "resume_supported": false,
+      "summary": "Share the current conversation"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "feedback",
+      "resume_supported": false,
+      "summary": "Submit feedback about the current session"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[list|run <hook>]",
+      "implemented": false,
+      "name": "hooks",
+      "resume_supported": true,
+      "summary": "List and manage lifecycle hooks"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "files",
+      "resume_supported": true,
+      "summary": "List files in the current context window"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[show|clear]",
+      "implemented": false,
+      "name": "context",
+      "resume_supported": true,
+      "summary": "Inspect or manage the conversation context"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[scheme]",
+      "implemented": false,
+      "name": "color",
+      "resume_supported": true,
+      "summary": "Configure terminal color settings"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[low|medium|high]",
+      "implemented": false,
+      "name": "effort",
+      "resume_supported": true,
+      "summary": "Set the effort level for responses"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "fast",
+      "resume_supported": true,
+      "summary": "Toggle fast/concise response mode"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "exit",
+      "resume_supported": false,
+      "summary": "Exit the REPL session"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[name]",
+      "implemented": false,
+      "name": "branch",
+      "resume_supported": false,
+      "summary": "Create or switch git branches"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[steps]",
+      "implemented": false,
+      "name": "rewind",
+      "resume_supported": false,
+      "summary": "Rewind the conversation to a previous state"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "summary",
+      "resume_supported": true,
+      "summary": "Generate a summary of the conversation"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "desktop",
+      "resume_supported": false,
+      "summary": "Open or manage the desktop app integration"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[vscode|cursor]",
+      "implemented": false,
+      "name": "ide",
+      "resume_supported": false,
+      "summary": "Open or configure IDE integration"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[label]",
+      "implemented": false,
+      "name": "tag",
+      "resume_supported": true,
+      "summary": "Tag the current conversation point"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "brief",
+      "resume_supported": true,
+      "summary": "Toggle brief output mode"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "advisor",
+      "resume_supported": true,
+      "summary": "Toggle advisor mode for guidance-only responses"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "stickers",
+      "resume_supported": true,
+      "summary": "Browse and manage sticker packs"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "insights",
+      "resume_supported": true,
+      "summary": "Show AI-generated insights about the session"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "thinkback",
+      "resume_supported": true,
+      "summary": "Replay the thinking process of the last response"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "release-notes",
+      "resume_supported": false,
+      "summary": "Generate release notes from recent changes"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[scope]",
+      "implemented": false,
+      "name": "security-review",
+      "resume_supported": false,
+      "summary": "Run a security review on the codebase"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "keybindings",
+      "resume_supported": true,
+      "summary": "Show or configure keyboard shortcuts"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "privacy-settings",
+      "resume_supported": true,
+      "summary": "View or modify privacy settings"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[style]",
+      "implemented": false,
+      "name": "output-style",
+      "resume_supported": true,
+      "summary": "Switch output formatting style"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<path>",
+      "implemented": false,
+      "name": "add-dir",
+      "resume_supported": false,
+      "summary": "Add an additional directory to the context"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[add|remove|list] [tool]",
+      "implemented": false,
+      "name": "allowed-tools",
+      "resume_supported": true,
+      "summary": "Show or modify the allowed tools list"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[key]",
+      "implemented": false,
+      "name": "api-key",
+      "resume_supported": false,
+      "summary": "Show or set the Anthropic API key"
+    },
+    {
+      "aliases": [
+        "yes",
+        "y"
+      ],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "approve",
+      "resume_supported": false,
+      "summary": "Approve a pending tool execution"
+    },
+    {
+      "aliases": [
+        "no",
+        "n"
+      ],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "deny",
+      "resume_supported": false,
+      "summary": "Deny a pending tool execution"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "undo",
+      "resume_supported": false,
+      "summary": "Undo the last file write or edit"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "stop",
+      "resume_supported": false,
+      "summary": "Stop the current generation"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "retry",
+      "resume_supported": false,
+      "summary": "Retry the last failed message"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "paste",
+      "resume_supported": false,
+      "summary": "Paste clipboard content as input"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "screenshot",
+      "resume_supported": false,
+      "summary": "Take a screenshot and add to conversation"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<path>",
+      "implemented": false,
+      "name": "image",
+      "resume_supported": false,
+      "summary": "Add an image file to the conversation"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "terminal-setup",
+      "resume_supported": true,
+      "summary": "Configure terminal integration settings"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<query>",
+      "implemented": false,
+      "name": "search",
+      "resume_supported": false,
+      "summary": "Search files in the workspace"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "listen",
+      "resume_supported": false,
+      "summary": "Listen for voice input"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "speak",
+      "resume_supported": false,
+      "summary": "Read the last response aloud"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[language]",
+      "implemented": false,
+      "name": "language",
+      "resume_supported": true,
+      "summary": "Set the interface language"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[name]",
+      "implemented": false,
+      "name": "profile",
+      "resume_supported": false,
+      "summary": "Show or switch user profile"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[count]",
+      "implemented": false,
+      "name": "max-tokens",
+      "resume_supported": true,
+      "summary": "Show or set the max output tokens"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[value]",
+      "implemented": false,
+      "name": "temperature",
+      "resume_supported": true,
+      "summary": "Show or set the sampling temperature"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "system-prompt",
+      "resume_supported": true,
+      "summary": "Show the active system prompt"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<tool-name>",
+      "implemented": false,
+      "name": "tool-details",
+      "resume_supported": true,
+      "summary": "Show detailed info about a specific tool"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[markdown|plain|json]",
+      "implemented": false,
+      "name": "format",
+      "resume_supported": false,
+      "summary": "Format the last response in a different style"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[message-index]",
+      "implemented": false,
+      "name": "pin",
+      "resume_supported": false,
+      "summary": "Pin a message to persist across compaction"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[message-index]",
+      "implemented": false,
+      "name": "unpin",
+      "resume_supported": false,
+      "summary": "Unpin a previously pinned message"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[add|remove|list]",
+      "implemented": false,
+      "name": "bookmarks",
+      "resume_supported": true,
+      "summary": "List or manage conversation bookmarks"
+    },
+    {
+      "aliases": [
+        "cwd"
+      ],
+      "argument_hint": "[path]",
+      "implemented": false,
+      "name": "workspace",
+      "resume_supported": true,
+      "summary": "Show or change the working directory"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[count]",
+      "implemented": true,
+      "name": "history",
+      "resume_supported": true,
+      "summary": "Show conversation history summary"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "tokens",
+      "resume_supported": true,
+      "summary": "Show token count for the current conversation"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "cache",
+      "resume_supported": true,
+      "summary": "Show prompt cache statistics"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "providers",
+      "resume_supported": true,
+      "summary": "List available model providers"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": true,
+      "name": "setup",
+      "resume_supported": false,
+      "summary": "Run the interactive provider setup wizard"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[on|off|status]",
+      "implemented": false,
+      "name": "notifications",
+      "resume_supported": true,
+      "summary": "Show or configure notification settings"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[count]",
+      "implemented": false,
+      "name": "changelog",
+      "resume_supported": true,
+      "summary": "Show recent changes to the codebase"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[filter]",
+      "implemented": false,
+      "name": "test",
+      "resume_supported": false,
+      "summary": "Run tests for the current project"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[filter]",
+      "implemented": false,
+      "name": "lint",
+      "resume_supported": false,
+      "summary": "Run linting for the current project"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[target]",
+      "implemented": false,
+      "name": "build",
+      "resume_supported": false,
+      "summary": "Build the current project"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<command>",
+      "implemented": false,
+      "name": "run",
+      "resume_supported": false,
+      "summary": "Run a command in the project context"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<subcommand>",
+      "implemented": false,
+      "name": "git",
+      "resume_supported": false,
+      "summary": "Run a git command in the workspace"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[pop|list|apply]",
+      "implemented": false,
+      "name": "stash",
+      "resume_supported": false,
+      "summary": "Stash or unstash workspace changes"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<file> [line]",
+      "implemented": false,
+      "name": "blame",
+      "resume_supported": true,
+      "summary": "Show git blame for a file"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[count]",
+      "implemented": false,
+      "name": "log",
+      "resume_supported": true,
+      "summary": "Show git log for the workspace"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[list|add|remove]",
+      "implemented": false,
+      "name": "cron",
+      "resume_supported": true,
+      "summary": "Manage scheduled tasks"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[list|create|delete]",
+      "implemented": false,
+      "name": "team",
+      "resume_supported": true,
+      "summary": "Manage agent teams"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[suite]",
+      "implemented": false,
+      "name": "benchmark",
+      "resume_supported": false,
+      "summary": "Run performance benchmarks"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "migrate",
+      "resume_supported": false,
+      "summary": "Run pending data migrations"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[section]",
+      "implemented": false,
+      "name": "reset",
+      "resume_supported": false,
+      "summary": "Reset configuration to defaults"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[on|off|status]",
+      "implemented": false,
+      "name": "telemetry",
+      "resume_supported": true,
+      "summary": "Show or configure telemetry settings"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "env",
+      "resume_supported": true,
+      "summary": "Show environment variables visible to tools"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "project",
+      "resume_supported": true,
+      "summary": "Show project detection info"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[list|apply <name>]",
+      "implemented": false,
+      "name": "templates",
+      "resume_supported": false,
+      "summary": "List or apply prompt templates"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<path> [line-range]",
+      "implemented": false,
+      "name": "explain",
+      "resume_supported": false,
+      "summary": "Explain a file or code snippet"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<path> [scope]",
+      "implemented": false,
+      "name": "refactor",
+      "resume_supported": false,
+      "summary": "Suggest refactoring for a file or function"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[path]",
+      "implemented": false,
+      "name": "docs",
+      "resume_supported": false,
+      "summary": "Generate or show documentation"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[path]",
+      "implemented": false,
+      "name": "fix",
+      "resume_supported": false,
+      "summary": "Fix errors in a file or project"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<path>",
+      "implemented": false,
+      "name": "perf",
+      "resume_supported": false,
+      "summary": "Analyze performance of a function or file"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "chat",
+      "resume_supported": false,
+      "summary": "Switch to free-form chat mode"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<path> [path...]",
+      "implemented": false,
+      "name": "focus",
+      "resume_supported": false,
+      "summary": "Focus context on specific files or directories"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[path...]",
+      "implemented": false,
+      "name": "unfocus",
+      "resume_supported": false,
+      "summary": "Remove focus from files or directories"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<url>",
+      "implemented": false,
+      "name": "web",
+      "resume_supported": false,
+      "summary": "Fetch and summarize a web page"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[depth]",
+      "implemented": false,
+      "name": "map",
+      "resume_supported": true,
+      "summary": "Show a visual map of the codebase structure"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<path>",
+      "implemented": false,
+      "name": "symbols",
+      "resume_supported": true,
+      "summary": "List symbols (functions, classes, etc.) in a file"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<symbol>",
+      "implemented": false,
+      "name": "references",
+      "resume_supported": false,
+      "summary": "Find all references to a symbol"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<symbol>",
+      "implemented": false,
+      "name": "definition",
+      "resume_supported": false,
+      "summary": "Go to the definition of a symbol"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<symbol>",
+      "implemented": false,
+      "name": "hover",
+      "resume_supported": true,
+      "summary": "Show hover information for a symbol"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[path]",
+      "implemented": false,
+      "name": "diagnostics",
+      "resume_supported": true,
+      "summary": "Show LSP diagnostics for a file"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[path]",
+      "implemented": false,
+      "name": "autofix",
+      "resume_supported": false,
+      "summary": "Auto-fix all fixable diagnostics"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<commands>",
+      "implemented": false,
+      "name": "multi",
+      "resume_supported": false,
+      "summary": "Execute multiple slash commands in sequence"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[record|stop|play <name>]",
+      "implemented": false,
+      "name": "macro",
+      "resume_supported": false,
+      "summary": "Record or replay command macros"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<name> <command>",
+      "implemented": false,
+      "name": "alias",
+      "resume_supported": true,
+      "summary": "Create a command alias"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "<count> <prompt>",
+      "implemented": false,
+      "name": "parallel",
+      "resume_supported": false,
+      "summary": "Run commands in parallel subagents"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[list|spawn|kill]",
+      "implemented": false,
+      "name": "agent",
+      "resume_supported": true,
+      "summary": "Manage sub-agents and spawned sessions"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[list|steer <target> <msg>|kill <id>]",
+      "implemented": false,
+      "name": "subagent",
+      "resume_supported": true,
+      "summary": "Control active subagent execution"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[on|off|stream]",
+      "implemented": false,
+      "name": "reasoning",
+      "resume_supported": true,
+      "summary": "Toggle extended reasoning mode"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[show|set <limit>]",
+      "implemented": false,
+      "name": "budget",
+      "resume_supported": true,
+      "summary": "Show or set token budget limits"
+    },
+    {
+      "aliases": [],
+      "argument_hint": "[status|set <rpm>]",
+      "implemented": false,
+      "name": "rate-limit",
+      "resume_supported": true,
+      "summary": "Configure API rate limiting"
+    },
+    {
+      "aliases": [],
+      "argument_hint": null,
+      "implemented": false,
+      "name": "metrics",
+      "resume_supported": true,
+      "summary": "Show performance and usage metrics"
+    }
+  ]
+}

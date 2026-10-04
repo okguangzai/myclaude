@@ -1,0 +1,58 @@
+stages: [verify-build, deploy]
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+default:
+  tags: [myclaude-k8s]
+  interruptible: true
+
+variables:
+  HARBOR_REGISTRY: harbor.csghome.fun
+  IMAGE_REPOSITORY: harbor.csghome.fun/myclaude/app
+  BUILDKITD_FLAGS: --oci-worker-no-process-sandbox --oci-worker-snapshotter=native
+  GIT_DEPTH: "20"
+
+verify_and_build:
+  stage: verify-build
+  image:
+    name: moby/buildkit:v0.24.0-rootless
+    entrypoint: [""]
+  script:
+    - umask 077
+    - mkdir -p "$HOME/.docker"
+    - printf '{"auths":{"%s":{"auth":"%s"}}}' "$HARBOR_REGISTRY" "$(printf '%s:%s' "$HARBOR_USERNAME" "$HARBOR_PASSWORD" | base64 | tr -d '\n')" > "$HOME/.docker/config.json"
+    - >-
+      buildctl-daemonless.sh build
+      --frontend dockerfile.v0
+      --local context=.
+      --local dockerfile=.
+      --opt build-arg:VITE_BASE_PATH=/myclaude/
+      --secret id=build_proxy,env=HTTPS_PROXY
+      --import-cache type=registry,ref="$IMAGE_REPOSITORY:buildcache"
+      --export-cache type=registry,ref="$IMAGE_REPOSITORY:buildcache",mode=max
+      --output type=image,name="$IMAGE_REPOSITORY:$CI_COMMIT_SHA",push=true
+  after_script:
+    - rm -f "$HOME/.docker/config.json"
+
+deploy_production:
+  stage: deploy
+  image:
+    name: alpine/k8s:1.34.0
+    entrypoint: [""]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  interruptible: false
+  resource_group: myclaude-production
+  environment:
+    name: production
+    url: https://gitlab.csghome.fun/myclaude/
+  variables:
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: myclaude-deploy
+  script:
+    - sh deploy/release.sh
+  artifacts:
+    when: always
+    paths: [deployment-result.txt]
+    expire_in: 30 days

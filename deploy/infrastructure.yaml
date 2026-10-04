@@ -1,0 +1,363 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations: {}
+  name: myclaude-runner
+  namespace: myclaude-ci
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations: {}
+  name: myclaude-build
+  namespace: myclaude-ci
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations: {}
+  name: myclaude-deploy
+  namespace: myclaude-ci
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations: {}
+  name: myclaude-runner
+  namespace: myclaude-ci
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  - pods/exec
+  - pods/attach
+  - pods/log
+  - secrets
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  - events
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  annotations: {}
+  name: myclaude-runner
+  namespace: myclaude-ci
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: myclaude-runner
+subjects:
+- kind: ServiceAccount
+  name: myclaude-runner
+  namespace: myclaude-ci
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: '1'
+  name: myclaude-runner
+  namespace: myclaude-ci
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: myclaude-runner
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myclaude-runner
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - cp /config/config.toml /tmp/config.toml; exec gitlab-runner run --config
+          /tmp/config.toml --working-directory /tmp
+        env:
+        - name: HOME
+          value: /tmp
+        image: gitlab/gitlab-runner:alpine-v18.11.1
+        imagePullPolicy: IfNotPresent
+        name: runner
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /config
+          name: config
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsUser: 1000
+      serviceAccount: myclaude-runner
+      serviceAccountName: myclaude-runner
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: config
+        secret:
+          defaultMode: 288
+          secretName: myclaude-runner-config
+      - emptyDir: {}
+        name: tmp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: '1'
+  name: myclaude-build-proxy
+  namespace: myclaude-ci
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: myclaude-build-proxy
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: '2026-09-21T09:26:29Z'
+      labels:
+        app: myclaude-build-proxy
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - command:
+        - node
+        - /config/proxy.cjs
+        image: node@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1
+        imagePullPolicy: IfNotPresent
+        name: proxy
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 20m
+            memory: 32Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /config
+          name: config
+          readOnly: true
+        - mountPath: /auth
+          name: auth
+          readOnly: true
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      nodeSelector:
+        kubernetes.io/hostname: csg
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: myclaude-build-proxy
+        name: config
+      - name: auth
+        secret:
+          defaultMode: 288
+          secretName: myclaude-build-proxy
+---
+apiVersion: v1
+data:
+  proxy.cjs: "const http=require('node:http'),net=require('node:net'),fs=require('node:fs');\n\
+    const auth='Basic '+Buffer.from('myclaude:'+fs.readFileSync('/auth/token','utf8').trim()).toString('base64');\n\
+    const allowed=['fonts.google.com','fonts.googleapis.com','fonts.gstatic.com','pypi.org',\
+    \ 'files.pythonhosted.org', 'registry-1.docker.io','auth.docker.io','production.cloudflare.docker.com','production.cloudfront.docker.com'];\n\
+    const server=http.createServer((q,s)=>s.writeHead(405).end());\nserver.on('connect',(req,socket,head)=>{\n\
+    \ const host=req.url.replace(/:443$/,'');\n if(req.headers['proxy-authorization']!==auth\
+    \ || !req.url.endsWith(':443') || !(allowed.includes(host)||host.endsWith('.r2.cloudflarestorage.com')))\
+    \ {socket.end('HTTP/1.1 403 Forbidden\\r\\n\\r\\n');return;}\n const upstream=net.connect(10809,'127.0.0.1',()=>{upstream.write('CONNECT\
+    \ '+req.url+' HTTP/1.1\\r\\nHost: '+req.url+'\\r\\n\\r\\n');if(head.length)upstream.write(head);socket.pipe(upstream);upstream.pipe(socket);});\n\
+    \ upstream.on('error',()=>socket.destroy());socket.on('error',()=>upstream.destroy());socket.on('close',()=>upstream.destroy());upstream.setTimeout(180000,()=>upstream.destroy());\n\
+    });server.listen(18091,'10.244.0.0');"
+kind: ConfigMap
+metadata:
+  annotations: {}
+  name: myclaude-build-proxy
+  namespace: myclaude-ci
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations: {}
+  name: myclaude-deploy
+  namespace: myclaude
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - services
+  verbs:
+  - get
+  - create
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - pods/exec
+  verbs:
+  - create
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  annotations: {}
+  name: myclaude-deploy
+  namespace: myclaude
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: myclaude-deploy
+subjects:
+- kind: ServiceAccount
+  name: myclaude-deploy
+  namespace: myclaude-ci
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: myclaude-data
+  namespace: myclaude
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: local-path
+  volumeMode: Filesystem
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: myclaude-auth@kubernetescrd,myclaude-strip@kubernetescrd
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+  name: myclaude
+  namespace: myclaude
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: gitlab.csghome.fun
+    http:
+      paths:
+      - backend:
+          service:
+            name: myclaude
+            port:
+              number: 8000
+        path: /myclaude
+        pathType: Prefix
+  tls:
+  - hosts:
+    - gitlab.csghome.fun
+    secretName: myclaude-tls
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  annotations: {}
+  name: auth
+  namespace: myclaude
+spec:
+  basicAuth:
+    removeHeader: true
+    secret: myclaude-auth
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  annotations: {}
+  name: strip
+  namespace: myclaude
+spec:
+  stripPrefix:
+    prefixes:
+    - /myclaude

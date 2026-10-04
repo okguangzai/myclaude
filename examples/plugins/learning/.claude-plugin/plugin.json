@@ -1,0 +1,13 @@
+{
+  "name": "learning",
+  "version": "1.0.0",
+  "description": "可离线测试的字数统计工具、插件命令和文件写入拦截 hook",
+  "permissions": ["execute"],
+  "defaultEnabled": false,
+  "lifecycle": {"Init": ["$python plugin.py init"], "Shutdown": ["$python plugin.py shutdown"]},
+  "hooks": {"PreToolUse": ["$python plugin.py pre"], "PostToolUse": ["$python plugin.py post"], "PostToolUseFailure": ["$python plugin.py failure"]},
+  "tools": [{"name": "word_count", "description": "Count words and characters in supplied text.",
+    "inputSchema": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"], "additionalProperties": false},
+    "command": "$python", "args": ["plugin.py", "count"], "requiredPermission": "danger-full-access"}],
+  "commands": [{"name": "hello", "description": "插件命令示例", "command": "$python plugin.py hello"}]
+}

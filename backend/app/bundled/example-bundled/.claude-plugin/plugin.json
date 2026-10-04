@@ -1,0 +1,1 @@
+{"name":"example-bundled","version":"0.1.0","description":"Python port of the upstream bundled hook example","defaultEnabled":false,"hooks":{"PreToolUse":["$python hooks/echo.py pre"],"PostToolUse":["$python hooks/echo.py post"]}}

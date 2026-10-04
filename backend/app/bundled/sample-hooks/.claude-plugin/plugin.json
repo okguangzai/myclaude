@@ -1,0 +1,1 @@
+{"name":"sample-hooks","version":"0.1.0","description":"Python port of the upstream sample hooks","defaultEnabled":false,"hooks":{"PreToolUse":["$python hooks/echo.py pre"],"PostToolUse":["$python hooks/echo.py post"]}}
