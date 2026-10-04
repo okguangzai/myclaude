@@ -107,6 +107,8 @@ class Database:
         run_id = uid()
         with self.connect() as c:
             c.execute("BEGIN IMMEDIATE")
+            if not c.execute("SELECT 1 FROM sessions WHERE id=?", (session_id,)).fetchone():
+                raise ValueError("会话已删除或不存在，不能启动任务")
             if c.execute(
                 "SELECT 1 FROM runs WHERE session_id=? AND status='running'", (session_id,)
             ).fetchone():

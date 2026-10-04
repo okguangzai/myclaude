@@ -166,6 +166,11 @@ async def test_session_delete_confirmation_backup_and_active_guard(runtime):
     backup = Path(response["result"]["backup"]).read_text(encoding="utf-8")
     assert "must survive in backup" in backup
     assert ext.db.all("SELECT id FROM runs WHERE id=?", (run,))
+    # Another process may hold a session snapshot loaded just before deletion.
+    with pytest.raises(ValueError, match="已删除"):
+        ext.db.start_run(old["id"], "test", "read-only")
+    with pytest.raises(ValueError, match="已删除"):
+        ext.jobs.submit("agent", {}, lambda: None, session_id=old["id"])
 
 
 @pytest.mark.asyncio

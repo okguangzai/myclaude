@@ -145,6 +145,12 @@ class Jobs:
         if len(self.running) >= 32:
             raise ValueError("后台任务队列已满（32）")
         with self.db.connect() as c:
+            c.execute("BEGIN IMMEDIATE")
+            if (
+                session_id
+                and not c.execute("SELECT 1 FROM sessions WHERE id=?", (session_id,)).fetchone()
+            ):
+                raise ValueError("会话已删除或不存在，不能排队任务")
             c.execute(
                 "INSERT INTO jobs VALUES(?,?,?,?,?,?,?,?,?)",
                 (
