@@ -169,7 +169,7 @@ onMounted(() =>
       <label
         >图片模型（留空沿用对话模型）<input
           v-model="form.vision_model"
-          placeholder="当前 qwen-flash 已验证支持图片"
+          placeholder="例如 qwen3-vl-flash；图片请求单独使用"
       /></label>
       <label
         >语音通道<select v-model="form.speech_provider">
