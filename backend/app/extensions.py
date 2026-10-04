@@ -865,10 +865,13 @@ class Extensions:
             item = {**item, **control.create(key, item["cwd"])}
         job = self.jobs.get(item["job_id"]) if item.get("job_id") else None
         if job and job["status"] not in {"queued", "running"} and item["status"] == "running":
+            result = job.get("result") or {}
             control.completion(
                 item,
-                "stop" if job["status"] == "completed" else "error",
-                (job.get("result") or {}).get("usage", {}).get("output_tokens", 0),
+                (result.get("finish_reason") or "stop")
+                if job["status"] in {"completed", "limit"}
+                else "error",
+                result.get("usage", {}).get("output_tokens", 0),
             )
         if name == "WorkerResolveTrust":
             control.resolve_trust(item)

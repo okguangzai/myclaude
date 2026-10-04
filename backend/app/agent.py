@@ -59,6 +59,7 @@ class Agent:
             "cache_creation_input_tokens": 0,
         }
         status, error, turns = "cancelled", None, 0
+        finish_reason = None
 
         def event(kind, **data):
             safe = json.loads(self.store.redact(json.dumps(data, ensure_ascii=False)))
@@ -146,6 +147,7 @@ class Agent:
                             result = item
                     if result is None:
                         raise ValueError("模型未返回完整响应")
+                    finish_reason = result.get("stop")
                     from .prompt_cache import PromptCache
 
                     cache_state = PromptCache(self.store.data, session_id).record(
@@ -254,11 +256,24 @@ class Agent:
             self.db.event(
                 run_id,
                 "run_end",
-                {"status": status, "usage": usage, "turns": turns, "error": error},
+                {
+                    "status": status,
+                    "usage": usage,
+                    "turns": turns,
+                    "error": error,
+                    "finish_reason": finish_reason,
+                },
             )
             if tracer:
                 tracer.record(
-                    "run_end", {"status": status, "usage": usage, "turns": turns, "error": error}
+                    "run_end",
+                    {
+                        "status": status,
+                        "usage": usage,
+                        "turns": turns,
+                        "error": error,
+                        "finish_reason": finish_reason,
+                    },
                 )
             self.active.discard(session_id)
             current.reset(context_token)
@@ -270,4 +285,5 @@ class Agent:
             "usage": usage,
             "turns": turns,
             "error": error,
+            "finish_reason": finish_reason,
         }
