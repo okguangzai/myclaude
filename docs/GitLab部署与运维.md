@@ -18,14 +18,15 @@ flowchart LR
   G --> H[Kubernetes 单实例发布]
   H --> I[就绪探针 / API / HTML 与静态资源检查]
   I -->|失败| J[恢复上一镜像]
-  U[浏览器] --> T[Traefik TLS 与密码认证]
+  U[浏览器] --> DNS[myclaude.csghome.fun]
+  DNS --> T[Traefik TLS 与密码认证]
   T --> H
   H --> V[10Gi PVC: SQLite / 配置 / 工作区]
   H --> Q[现有 Qdrant]
   H --> M[云模型 API]
 ```
 
-`.gitlab-ci.yml` 在 `main` 上自动执行；构建的 Dockerfile 必须完成 Python 测试和 Vue 构建后才能生成最终镜像。发布按 `myclaude-production` 串行执行；每次升级前在 PVC `/data/backups/<UTC时间>/` 使用 SQLite backup API 备份数据库及配置；失败后任务仍标记失败，同时恢复上一镜像。首次发布没有旧镜像可恢复。默认分支受保护，禁止强制推送。
+`.gitlab-ci.yml` 在 `main` 上自动执行；构建的 Dockerfile 必须完成 Python 测试和 Vue 构建后才能生成最终镜像。发布按 `myclaude-production` 串行执行；每次升级前在 PVC `/data/backups/<UTC时间>/` 使用 SQLite backup API 备份数据库及配置；失败后任务仍标记失败，同时回退至上一个 Deployment revision，恢复镜像及容器环境等完整模板。首次发布没有旧镜像可恢复。默认分支受保护，禁止强制推送。
 
 ## 隔离与凭据
 
@@ -69,3 +70,5 @@ kubectl -n myclaude rollout status deployment/myclaude --timeout=180s
 CI/CD 自动发布不代表 Rust 全部行为已经逐项等价。功能迁移和仍未完成的兼容项以 [全量迁移进度](全量迁移进度.md) 为准。
 
 真实流水线、模型、检索和访问保护的验证见 [部署验收记录](部署验收记录.md)。
+
+独立域名的 HTTP 入口会跳转 HTTPS；旧 `https://gitlab.csghome.fun/myclaude/` 跳转新域名。新 TLS Secret 为 `myclaude-domain-tls`，由 cert-manager 的 letsencrypt-production 自动续期。

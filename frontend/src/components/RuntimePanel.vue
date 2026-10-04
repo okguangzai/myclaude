@@ -433,7 +433,7 @@ onMounted(() => load().catch((e) => (error.value = e.message)));
       >模型连接重试次数<input
         type="number"
         min="0"
-        max="5"
+        max="20"
         v-model.number="retries" /></label
     ><button
       class="btn primary"
