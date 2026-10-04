@@ -26,9 +26,9 @@ spec:
           image: IMAGE_PLACEHOLDER
           ports: [{containerPort: 8000}]
           env:
-            - {name: MYCLAUDE_ROOT_PATH, value: /myclaude}
-            - {name: MYCLAUDE_ALLOWED_HOSTS, value: gitlab.csghome.fun}
-            - {name: MYCLAUDE_ALLOWED_ORIGINS, value: 'https://gitlab.csghome.fun'}
+            - {name: MYCLAUDE_ROOT_PATH, value: ""}
+            - {name: MYCLAUDE_ALLOWED_HOSTS, value: myclaude.csghome.fun}
+            - {name: MYCLAUDE_ALLOWED_ORIGINS, value: 'https://myclaude.csghome.fun'}
           resources:
             requests: {cpu: 100m, memory: 256Mi}
             limits: {cpu: '2', memory: 2Gi}

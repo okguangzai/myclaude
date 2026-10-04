@@ -15,6 +15,9 @@ def fingerprint(value):
 
 class PromptCache:
     def __init__(self, data, session, completion_ttl=30, prompt_ttl=300, break_min_drop=2000):
+        from .cache_interop import RustPromptCache
+
+        self.interop = RustPromptCache(Path(data) / "cache/prompt-cache", session, completion_ttl)
         self.path, self.session = Path(data) / "prompt-cache.sqlite", session
         self.completion_ttl, self.prompt_ttl, self.break_min_drop = (
             completion_ttl,
@@ -134,6 +137,12 @@ class PromptCache:
                 )
                 stats["completion_cache_writes"] += 1
             self.save(conn, current, stats)
+            # The SQLite database remains the concurrent diagnostic store. The file
+            # mirror permits upstream consumers to read the same protocol requests.
+            try:
+                self.interop.record(request, response or {"usage": usage}, stats, now)
+            except (OSError, ValueError, KeyError, TypeError):
+                pass  # Cache persistence must not break a successful model response.
             return {"cache_break": cache_break, "stats": stats}
 
     def lookup(self, request, now=None):

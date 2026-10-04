@@ -72,11 +72,11 @@ class OAuth:
             "refreshable": bool(token.get("refreshToken")),
             "expires_at": token.get("expiresAt"),
             "scopes": token.get("scopes", []),
-            "config": root.get("oauth_config"),
+            "config": root.get("oauth_config") or self.store.current.oauth_config or None,
         }
 
-    def begin(self, config):
-        cfg = OAuthConfig.model_validate(config)
+    def begin(self, config=None):
+        cfg = OAuthConfig.model_validate(config or self.status()["config"] or {})
         verifier, state = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
         self.pending = {k: v for k, v in self.pending.items() if v["expires"] > time.time()}
         if len(self.pending) >= 10:

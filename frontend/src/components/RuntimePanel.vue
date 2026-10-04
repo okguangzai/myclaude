@@ -39,6 +39,7 @@ const diagnostic = ref("recovery"),
   );
 function example() {
   const examples: Record<string, any> = {
+    bash: { command: "git status", permission: "read-only" },
     recovery: { scenario: "stale_branch", fail_at_step: 1, attempts: 2 },
     branch: { branch: "HEAD", main_ref: "main", policy: "warn_only" },
     collisions: {
@@ -506,6 +507,7 @@ onMounted(() => load().catch((e) => (error.value = e.message)));
         <option value="policy">策略规则</option>
         <option value="report">标准化报告</option>
         <option value="usage">Token 与自定义单价</option>
+        <option value="bash">Bash 命令分类（只分析）</option>
       </select></label
     ><label>输入 JSON<textarea v-model="diagnosticJson" rows="10" /></label
     ><button

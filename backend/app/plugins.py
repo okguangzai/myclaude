@@ -3,11 +3,14 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import os
 import re
 import shlex
 import shutil
+import stat
 import sys
 import tempfile
+import time
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -17,12 +20,99 @@ from .execution import current, process, require
 
 
 class Plugins:
-    def __init__(self, jobs, store):
+    def __init__(self, jobs, store, *, staging=False):
         self.jobs, self.store = jobs, store
-        self.home = store.data / "plugins"
-        self.home.mkdir(exist_ok=True)
+
+        def configured_path(value, default):
+            path = Path(value).expanduser() if value else default
+            return (
+                (Path(store.current.workspace) / path).resolve()
+                if not path.is_absolute()
+                else path.resolve()
+            )
+
+        self.home = configured_path(store.current.plugin_install_root, store.data / "plugins")
+        self.registry_path = (
+            configured_path(store.current.plugin_registry_path, store.data / "plugins.json")
+            if store.current.plugin_registry_path and not staging
+            else None
+        )
+        self.home.mkdir(parents=True, exist_ok=True)
         self.started = set()
         self.mutation_lock = asyncio.Lock()
+        self.importing = True
+        if self.registry_path and self.registry_path.is_file():
+            self.import_registry()
+        self.importing = False
+
+    def import_registry(self):
+        """Read upstream installed.json without enabling imported executable code."""
+        root = json.loads(self.registry_path.read_text(encoding="utf-8-sig"))
+        for record in root.get("plugins", {}).values():
+            name = record["name"]
+            if self.jobs.record("plugin", name):
+                continue
+            path = Path(record["install_path"]).expanduser().resolve()
+            target = self.home / name
+            if path != target.resolve():
+                item = self.install(path)
+            else:
+                manifest = json.loads(
+                    (path / ".claude-plugin/plugin.json").read_text(encoding="utf-8-sig")
+                )
+                if (
+                    not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,29}", name)
+                    or manifest["name"] != name
+                ):
+                    raise ValueError("插件注册表名称与 manifest 不匹配")
+                item = {
+                    "name": name,
+                    "manifest": manifest,
+                    "digest": self.digest(path),
+                    "enabled": False,
+                }
+            source = record.get("source", {})
+            item.pop("id", None)
+            item.update(
+                source=source.get("url") or source.get("path") or str(path),
+                kind=record.get("kind", "external"),
+                installed_at_unix_ms=record.get("installed_at_unix_ms", int(time.time() * 1000)),
+            )
+            self.jobs.put("plugin", name, item)
+
+    def persist_registry(self):
+        if not self.registry_path or self.importing:
+            return
+        records = {}
+        for item in self.list():
+            name, manifest = item["name"], item["manifest"]
+            source = item.get("source", str(self.home / name))
+            remote = urlsplit(source).scheme in {"https", "ssh"} or source.startswith("git@")
+            records[name] = {
+                "id": name,
+                "kind": item.get("kind", "external"),
+                "name": name,
+                "version": manifest.get("version", "0.0.0"),
+                "description": manifest.get("description", ""),
+                "install_path": str(self.home / name),
+                "source": {"type": "git_url", "url": source}
+                if remote
+                else {"type": "local_path", "path": source},
+                "installed_at_unix_ms": item.get("installed_at_unix_ms", int(time.time() * 1000)),
+                "updated_at_unix_ms": int(time.time() * 1000),
+            }
+        self.registry_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = self.registry_path.with_suffix(".tmp")
+        temporary.write_text(
+            json.dumps({"plugins": records}, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        os.chmod(temporary, 0o600)
+        temporary.replace(self.registry_path)
+
+    def put(self, kind, key, value):
+        result = self.jobs.put(kind, key, value)
+        self.persist_registry()
+        return result
 
     def list(self):
         return self.jobs.records("plugin")
@@ -113,7 +203,7 @@ class Plugins:
                         item = old
                     item.pop("id", None)
                     item["kind"] = candidate["kind"]
-                    self.jobs.put("plugin", name, item)
+                    self.put("plugin", name, item)
                     enabled = self.store.current.plugin_enabled
                     requested = enabled.get(
                         name + "@" + candidate["kind"], enabled.get(name, item["enabled"])
@@ -191,7 +281,7 @@ class Plugins:
         if target.exists():
             raise ValueError("目标插件目录已存在")
         shutil.copytree(source, target)
-        return self.jobs.put(
+        return self.put(
             "plugin",
             name,
             {
@@ -228,11 +318,24 @@ class Plugins:
                     )
                 metadata = checkout / ".git"
                 if metadata.is_dir() and metadata.resolve().parent == checkout.resolve():
-                    shutil.rmtree(metadata)
+
+                    def clear_read_only(operation, filename, error):
+                        path = Path(filename)
+                        if (
+                            not path.resolve().is_relative_to(metadata.resolve())
+                            or path.is_symlink()
+                        ):
+                            raise ValueError("Git 元数据删除路径越界")
+                        if not isinstance(error[1], PermissionError):
+                            raise error[1]
+                        os.chmod(path, stat.S_IREAD | stat.S_IWRITE)
+                        operation(path)
+
+                    shutil.rmtree(metadata, onerror=clear_read_only)
                 item = self.install(str(checkout))
                 key = item.pop("id")
                 item["source"] = source
-                return self.jobs.put("plugin", key, item)
+                return self.put("plugin", key, item)
         return self.install(source)
 
     async def update(self, name, source=None):
@@ -260,7 +363,7 @@ class Plugins:
                     self.rows[key] = {"id": key, **value}
                     return self.rows[key]
 
-            staged = Plugins(Staging(), self.store)
+            staged = Plugins(Staging(), self.store, staging=True)
             staged.home = Path(directory) / "staged"
             staged.home.mkdir()
             new = await staged.install_source(source)
@@ -276,14 +379,14 @@ class Plugins:
             target.rename(backup)
             try:
                 (staged.home / name).rename(target)
-                self.jobs.put("plugin", name, {k: v for k, v in new.items() if k != "id"})
+                self.put("plugin", name, {k: v for k, v in new.items() if k != "id"})
                 if was_enabled:
                     await self._enable(name, True)
             except BaseException:
                 if target.exists() and target.parent == self.home.resolve():
                     shutil.rmtree(target)
                 backup.rename(target)
-                self.jobs.put("plugin", name, {k: v for k, v in old.items() if k != "id"})
+                self.put("plugin", name, {k: v for k, v in old.items() if k != "id"})
                 if was_enabled:
                     await self._enable(name, True)
                 raise
@@ -350,14 +453,14 @@ class Plugins:
             self.started.discard(name)
         item.pop("id")
         item["enabled"] = enabled
-        self.jobs.put("plugin", name, item)
+        self.put("plugin", name, item)
         if enabled:
             try:
                 self.verified(name)
                 await self.lifecycle(name, "Init")
             except BaseException:
                 item["enabled"] = False
-                self.jobs.put("plugin", name, item)
+                self.put("plugin", name, item)
                 raise
             self.started.add(name)
         return self.jobs.record("plugin", name)
@@ -487,4 +590,5 @@ class Plugins:
             raise ValueError("插件路径越界")
         shutil.rmtree(target)
         self.jobs.remove("plugin", name)
+        self.persist_registry()
         return {"removed": name}

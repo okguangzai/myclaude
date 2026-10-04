@@ -41,6 +41,8 @@ class Provider:
     async def stream(
         self, cfg: Settings, messages: list, tools: list, system: str
     ) -> AsyncIterator[dict]:
+        if cfg.plugin_max_output_tokens is not None:
+            cfg = cfg.model_copy(update={"max_tokens": cfg.plugin_max_output_tokens})
         requested = cfg.fallback_primary or cfg.model
         models = list(dict.fromkeys([requested, *cfg.fallback_models]))
         last_error = None

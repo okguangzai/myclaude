@@ -266,7 +266,7 @@ class Commands:
         if command in {"status", "doctor", "sandbox", "version", "providers"}:
             return result(
                 {
-                    "version": "0.4.0",
+                    "version": "0.5.0",
                     "language": "Python",
                     "provider": cfg.provider,
                     "model": cfg.model,

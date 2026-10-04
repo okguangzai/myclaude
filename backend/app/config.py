@@ -44,10 +44,16 @@ class Settings(BaseModel):
     permission_mode: Literal["read-only", "workspace-write", "danger-full-access"] = "read-only"
     plugin_external_directories: list[str] = Field(default_factory=list)
     plugin_bundled_root: str | None = None
+    plugin_install_root: str | None = None
+    plugin_registry_path: str | None = None
+    plugin_max_output_tokens: int | None = Field(default=None, ge=1, le=1000000)
     plugin_enabled: dict[str, bool] = Field(default_factory=dict)
+    runtime_environment: dict[str, str] = Field(default_factory=dict)
+    upstream_mcp_servers: dict[str, dict] = Field(default_factory=dict)
+    oauth_config: dict = Field(default_factory=dict)
     denied_tools: list[str] = Field(default_factory=list)
     lsp_servers: dict[str, list[str]] = Field(default_factory=dict)
-    provider_retries: int = Field(default=2, ge=0, le=5)
+    provider_retries: int = Field(default=2, ge=0, le=20)
     telemetry_enabled: bool = False
     reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh"] | None = None
     hooks: dict[str, list] = Field(default_factory=dict)
@@ -213,6 +219,16 @@ class ConfigStore:
                     values[target] = env[source]
             self.current = Settings(**values)
             self._save(self.current)
+        self.remember_runtime_secrets()
+
+    def remember_runtime_secrets(self):
+        self.runtime_environment = dict(self.current.runtime_environment)
+        self.extra_secrets.update(v for v in self.runtime_environment.values() if len(v) >= 8)
+        for server in self.current.upstream_mcp_servers.values():
+            for section in ("env", "headers"):
+                self.extra_secrets.update(
+                    str(v) for v in server.get(section, {}).values() if len(str(v)) >= 8
+                )
 
     def _save(self, settings: Settings):
         tmp = self.path.with_suffix(".tmp")
@@ -221,9 +237,16 @@ class ConfigStore:
         tmp.replace(self.path)
 
     def public(self) -> dict:
+        from .config_layers import mask
+
         values = self.current.model_dump()
         for name in SECRET_FIELDS:
             values[f"{name}_set"] = bool(values.pop(name))
+        # Raw imported MCP credentials and environment must never become form values.
+        values.pop("runtime_environment", None)
+        values.pop("upstream_mcp_servers", None)
+        values["imported_mcp"] = mask(self.current.upstream_mcp_servers)
+        values["runtime_environment_names"] = sorted(self.runtime_environment)
         return values
 
     def update(self, changes: dict) -> Settings:
@@ -241,6 +264,7 @@ class ConfigStore:
         updated = Settings(**values)
         self._save(updated)
         self.current = updated
+        self.remember_runtime_secrets()
         return updated
 
     def redact(self, value: str) -> str:

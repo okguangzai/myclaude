@@ -55,3 +55,20 @@ def test_cli_resume_without_prompt_is_local(tmp_path, monkeypatch, capsys):
     result = json.loads(capsys.readouterr().out)
     assert result["kind"] == "resume"
     assert result["result"]["id"] == session["id"]
+
+
+@pytest.mark.parametrize(
+    "arguments,kind",
+    [
+        (["--unknown-option"], "unknown_option"),
+        (["--model"], "missing_flag_value"),
+        (["--permission", "invalid"], "invalid_flag_value"),
+    ],
+)
+def test_cli_machine_readable_argument_errors(arguments, kind, capsys):
+    with pytest.raises(SystemExit) as raised:
+        cli.main(["--output-format", "json", *arguments])
+    assert raised.value.code == 1
+    value = json.loads(capsys.readouterr().out)
+    assert value["error_kind"] == kind
+    assert value["action"] == "abort" and value["exit_code"] == 1

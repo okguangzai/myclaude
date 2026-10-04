@@ -28,7 +28,7 @@ verify_and_build:
       --frontend dockerfile.v0
       --local context=.
       --local dockerfile=.
-      --opt build-arg:VITE_BASE_PATH=/myclaude/
+      --opt build-arg:VITE_BASE_PATH=/
       --secret id=build_proxy,env=HTTPS_PROXY
       --import-cache type=registry,ref="$IMAGE_REPOSITORY:buildcache"
       --export-cache type=registry,ref="$IMAGE_REPOSITORY:buildcache",mode=max
@@ -47,7 +47,7 @@ deploy_production:
   resource_group: myclaude-production
   environment:
     name: production
-    url: https://gitlab.csghome.fun/myclaude/
+    url: https://myclaude.csghome.fun/
   variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: myclaude-deploy
   script:

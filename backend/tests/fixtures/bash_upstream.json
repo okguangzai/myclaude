@@ -1,0 +1,3890 @@
+[
+  {
+    "command": ":(){ :|:& };:",
+    "decision": "Warn",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": ":(){ :|:& };:",
+    "decision": "Warn",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": ":(){ :|:& };:",
+    "decision": "Warn",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "apt",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "apt",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "apt",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "apt-get",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "apt-get",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "apt-get",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "at",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "at",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "at",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "awk",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "awk",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "awk",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "basename",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "basename",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "basename",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "bc",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "bc",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "bc",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "bg",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "bg",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "bg",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "bisect",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "bisect",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "bisect",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "blame",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "blame",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "blame",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "blkid",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "blkid",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "blkid",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "branch",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "branch",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "branch",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "brew",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "brew",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "brew",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "bun",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "bun",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "bun",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cal",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "cal",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cal",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cargo",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "cargo",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cargo",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cat",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "cat",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cat",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cat ../../../etc/passwd",
+    "decision": "Warn",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "cat ../../../etc/passwd",
+    "decision": "Warn",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cat ../../../etc/passwd",
+    "decision": "Warn",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cat /etc/hosts",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "cat /etc/hosts",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cat /etc/hosts",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cat file.txt",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "cat file.txt",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cat file.txt",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cat ~/.ssh/id_rsa",
+    "decision": "Warn",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "cat ~/.ssh/id_rsa",
+    "decision": "Warn",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cat ~/.ssh/id_rsa",
+    "decision": "Warn",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cat-file",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "cat-file",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cat-file",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "chgrp",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "chgrp",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "chgrp",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "chmod",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "chmod",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "chmod",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "chown",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "chown",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "chown",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "chroot",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "chroot",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "chroot",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cmp",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "cmp",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cmp",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "column",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "column",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "column",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "config",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "config",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "config",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cp",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "cp",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cp",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cp a.txt b.txt",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "cp a.txt b.txt",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cp a.txt b.txt",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "crontab",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "crontab",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "crontab",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "curl",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "curl",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "curl",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "curl https://example.com",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "curl https://example.com",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "curl https://example.com",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "cut",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "cut",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "cut",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "date",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "date",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "date",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "dd",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "dd",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "dd",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "describe",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "describe",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "describe",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "df",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "df",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "df",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "diff",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "diff",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "diff",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "dig",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "dig",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "dig",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "dirname",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "dirname",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "dirname",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "disown",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "disown",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "disown",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "dmesg",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "dmesg",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "dmesg",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "dnf",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "dnf",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "dnf",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "docker",
+    "decision": "Block",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "docker",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "docker",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "du",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "du",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "du",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "echo",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "echo",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "echo",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "echo hello",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "echo hello",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "echo hello",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "echo hello > file.txt",
+    "decision": "Block",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "echo hello > file.txt",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "echo hello > file.txt",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "egrep",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "egrep",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "egrep",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "env",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "env",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "env",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "expr",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "expr",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "expr",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "false",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "false",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "false",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "fdisk",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "fdisk",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "fdisk",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "fetch",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "fetch",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "fetch",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "fg",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "fg",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "fg",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "fgrep",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "fgrep",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "fgrep",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "file",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "file",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "file",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "find",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "find",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "find",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "find . -name '*.rs'",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "find . -name '*.rs'",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "find . -name '*.rs'",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "firewall-cmd",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "firewall-cmd",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "firewall-cmd",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "flatpak",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "flatpak",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "flatpak",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "free",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "free",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "free",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ftp",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "ftp",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ftp",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "gem",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "gem",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "gem",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "git log --oneline",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "git log --oneline",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "git log --oneline",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "git push origin main",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "git push origin main",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "git push origin main",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "git status",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "git status",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "git status",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "go",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "go",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "go",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "grep",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "grep",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "grep",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "grep -r pattern .",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "grep -r pattern .",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "grep -r pattern .",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "groupadd",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "groupadd",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "groupadd",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "groupdel",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "groupdel",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "groupdel",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "groups",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "groups",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "groups",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "halt",
+    "decision": "Block",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "halt",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "halt",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "head",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "head",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "head",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "hexdump",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "hexdump",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "hexdump",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "host",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "host",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "host",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "hostname",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "hostname",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "hostname",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "htop",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "htop",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "htop",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "id",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "id",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "id",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ifconfig",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "ifconfig",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ifconfig",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "info",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "info",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "info",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "insmod",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "insmod",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "insmod",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "install",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "install",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "install",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ip",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "ip",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ip",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "iptables",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "iptables",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "iptables",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "jobs",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "jobs",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "jobs",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "journalctl",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "journalctl",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "journalctl",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "jq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "jq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "jq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "kill",
+    "decision": "Block",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "kill",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "kill",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "killall",
+    "decision": "Block",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "killall",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "killall",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "less",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "less",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "less",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ln",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "ln",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ln",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "log",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "log",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "log",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ls",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "ls",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ls",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ls -la",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "ls -la",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ls -la",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ls-files",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "ls-files",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ls-files",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ls-tree",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "ls-tree",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ls-tree",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "lsblk",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "lsblk",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "lsblk",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "man",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "man",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "man",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "md5sum",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "md5sum",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "md5sum",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "mkdir",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "mkdir",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "mkdir",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "mkdir -p /tmp/dir",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "mkdir -p /tmp/dir",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "mkdir -p /tmp/dir",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "mkfifo",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "mkfifo",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "mkfifo",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "mknod",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "mknod",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "mknod",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "modprobe",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "modprobe",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "modprobe",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "more",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "more",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "more",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "mount",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "mount",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "mount",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "mv",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "mv",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "mv",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "mv old.txt new.txt",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "mv old.txt new.txt",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "mv old.txt new.txt",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "nc",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "nc",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "nc",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ncat",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "ncat",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ncat",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "netstat",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "netstat",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "netstat",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "nice",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "nice",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "nice",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "nmap",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "nmap",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "nmap",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "nohup",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "nohup",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "nohup",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "npm",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "npm",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "npm",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "npm install express",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "npm install express",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "npm install express",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "nslookup",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "nslookup",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "nslookup",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "od",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "od",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "od",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "pacman",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "pacman",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "pacman",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "parted",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "parted",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "parted",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "passwd",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "passwd",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "passwd",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "paste",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "paste",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "paste",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ping",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "ping",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ping",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "pip",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "pip",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "pip",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "pip3",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "pip3",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "pip3",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "pkill",
+    "decision": "Block",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "pkill",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "pkill",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "pnpm",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "pnpm",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "pnpm",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "poweroff",
+    "decision": "Block",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "poweroff",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "poweroff",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "printenv",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "printenv",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "printenv",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "printf",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "printf",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "printf",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ps",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "ps",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ps",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "pwd",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "pwd",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "pwd",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "readlink",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "readlink",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "readlink",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "realpath",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "realpath",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "realpath",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "reboot",
+    "decision": "Block",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "reboot",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "reboot",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "reflog",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "reflog",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "reflog",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "remote",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "remote",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "remote",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "renice",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "renice",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "renice",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "rev-parse",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "rev-parse",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "rev-parse",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "rm",
+    "decision": "Block",
+    "intent": "Destructive",
+    "mode": "read-only"
+  },
+  {
+    "command": "rm",
+    "decision": "Allow",
+    "intent": "Destructive",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "rm",
+    "decision": "Allow",
+    "intent": "Destructive",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "rm -rf /",
+    "decision": "Block",
+    "intent": "Destructive",
+    "mode": "read-only"
+  },
+  {
+    "command": "rm -rf /",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "rm -rf /",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "rm -rf /tmp/x",
+    "decision": "Block",
+    "intent": "Destructive",
+    "mode": "read-only"
+  },
+  {
+    "command": "rm -rf /tmp/x",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "rm -rf /tmp/x",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "rm -rf ~",
+    "decision": "Block",
+    "intent": "Destructive",
+    "mode": "read-only"
+  },
+  {
+    "command": "rm -rf ~",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "rm -rf ~",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "rmdir",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "rmdir",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "rmdir",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "rmmod",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "rmmod",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "rmmod",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "rsync",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "rsync",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "rsync",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "rustup",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "rustup",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "rustup",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "scp",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "scp",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "scp",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "sed",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "sed",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "sed",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "sed 's/old/new/' file.txt",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "sed 's/old/new/' file.txt",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "sed 's/old/new/' file.txt",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "sed -i 's/old/new/' file.txt",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "sed -i 's/old/new/' file.txt",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "sed -i 's/old/new/' file.txt",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "seq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "seq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "seq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "service",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "service",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "service",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "sftp",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "sftp",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "sftp",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "sha1sum",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "sha1sum",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "sha1sum",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "sha256sum",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "sha256sum",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "sha256sum",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "shortlog",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "shortlog",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "shortlog",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "show",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "show",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "show",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "shred",
+    "decision": "Block",
+    "intent": "Destructive",
+    "mode": "read-only"
+  },
+  {
+    "command": "shred",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "shred",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "shred /dev/sda",
+    "decision": "Block",
+    "intent": "Destructive",
+    "mode": "read-only"
+  },
+  {
+    "command": "shred /dev/sda",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "shred /dev/sda",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "shutdown",
+    "decision": "Block",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "shutdown",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "shutdown",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "snap",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "snap",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "snap",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "sort",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "sort",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "sort",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ss",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "ss",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ss",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ssh",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "ssh",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ssh",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "stash",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "stash",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "stash",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "stat",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "stat",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "stat",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "status",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "status",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "status",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "strings",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "strings",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "strings",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "su",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "su",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "su",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "sudo",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "sudo",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "sudo",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "sudo rm -rf /tmp/x",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "sudo rm -rf /tmp/x",
+    "decision": "Warn",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "sudo rm -rf /tmp/x",
+    "decision": "Warn",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "sysctl",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "sysctl",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "sysctl",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "systemctl",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "systemctl",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "systemctl",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "tag",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "read-only"
+  },
+  {
+    "command": "tag",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "tag",
+    "decision": "Allow",
+    "intent": "Unknown",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "tail",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "tail",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "tail",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "tee",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "tee",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "tee",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "telnet",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "telnet",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "telnet",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "test",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "test",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "test",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "top",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "top",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "top",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "touch",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "touch",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "touch",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "tput",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "tput",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "tput",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "tr",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "tr",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "tr",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "traceroute",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "traceroute",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "traceroute",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "tree",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "tree",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "tree",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "true",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "true",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "true",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "truncate",
+    "decision": "Block",
+    "intent": "Write",
+    "mode": "read-only"
+  },
+  {
+    "command": "truncate",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "truncate",
+    "decision": "Allow",
+    "intent": "Write",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "ufw",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "ufw",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "ufw",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "umount",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "umount",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "umount",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "uname",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "uname",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "uname",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "uniq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "uniq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "uniq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "uptime",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "uptime",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "uptime",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "useradd",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "useradd",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "useradd",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "userdel",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "userdel",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "userdel",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "usermod",
+    "decision": "Block",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "usermod",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "usermod",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "visudo",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "read-only"
+  },
+  {
+    "command": "visudo",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "visudo",
+    "decision": "Allow",
+    "intent": "SystemAdmin",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "wait",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "wait",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "wait",
+    "decision": "Allow",
+    "intent": "ProcessManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "wc",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "wc",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "wc",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "wget",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "wget",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "wget",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "wget file.zip",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "wget file.zip",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "wget file.zip",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "whatis",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "whatis",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "whatis",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "whereis",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "whereis",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "whereis",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "which",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "which",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "which",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "whoami",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "whoami",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "whoami",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "whois",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "read-only"
+  },
+  {
+    "command": "whois",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "whois",
+    "decision": "Allow",
+    "intent": "Network",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "wipefs",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "read-only"
+  },
+  {
+    "command": "wipefs",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "wipefs",
+    "decision": "Warn",
+    "intent": "Destructive",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "xargs",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "xargs",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "xargs",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "xxd",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "xxd",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "xxd",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "yarn",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "yarn",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "yarn",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "yes",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "yes",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "yes",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "yq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "read-only"
+  },
+  {
+    "command": "yq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "yq",
+    "decision": "Allow",
+    "intent": "ReadOnly",
+    "mode": "danger-full-access"
+  },
+  {
+    "command": "yum",
+    "decision": "Block",
+    "intent": "PackageManagement",
+    "mode": "read-only"
+  },
+  {
+    "command": "yum",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "workspace-write"
+  },
+  {
+    "command": "yum",
+    "decision": "Allow",
+    "intent": "PackageManagement",
+    "mode": "danger-full-access"
+  }
+]

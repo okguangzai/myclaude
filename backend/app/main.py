@@ -71,7 +71,7 @@ def create_app(data: Path = DATA, root: Path = ROOT):
     app = FastAPI(
         title="MyClaude API",
         root_path=os.environ.get("MYCLAUDE_ROOT_PATH", "").rstrip("/"),
-        version="0.4.0",
+        version="0.5.0",
         lifespan=lifespan,
         docs_url="/api/docs",
         redoc_url=None,
@@ -122,7 +122,7 @@ def create_app(data: Path = DATA, root: Path = ROOT):
 
     @app.get("/api/health")
     async def health():
-        return {"ok": True, "version": "0.4.0", "service": "myclaude"}
+        return {"ok": True, "version": "0.5.0", "service": "myclaude"}
 
     @app.get("/api/overview")
     async def overview():

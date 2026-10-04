@@ -1,8 +1,8 @@
 # GitLab 部署与运维
 
 代码仓库：<https://gitlab.csghome.fun/csg/myclaude>（私有）。
-服务器入口：<https://gitlab.csghome.fun/myclaude/>，HTTPS + 独立 Basic Auth。
-入口复用现有 DNS，`/myclaude/` 以外的路径仍由 GitLab 处理。登录凭据保存在本机被 Git 忽略的 `.local/deploy/access.json`，不进入仓库或镜像。
+服务器入口：<https://myclaude.csghome.fun/>，HTTPS + 独立 Basic Auth。
+独立域名解析到 101.96.204.240，Traefik 直接路由根路径，证书由 cert-manager 自动续期。登录凭据保存在本机被 Git 忽略的 `.local/deploy/access.json`，不进入仓库或镜像。
 
 ## 发布链路
 

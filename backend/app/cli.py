@@ -22,7 +22,7 @@ from .rag import RagService
 from .tools import Tools
 from .tunnel import Tunnel
 
-VERSION = "0.4.0"
+VERSION = "0.5.0"
 LOCAL = {
     "status",
     "doctor",
@@ -51,8 +51,55 @@ LOCAL = {
 }
 
 
+def error_payload(message, kind="runtime_error"):
+    if ": " in message and message.split(": ", 1)[0] in {
+        "unexpected_extra_args",
+        "unknown_option",
+        "missing_flag_value",
+        "invalid_flag_value",
+    }:
+        kind, message = message.split(": ", 1)
+    return {
+        "type": "error",
+        "kind": kind,
+        "status": "error",
+        "error_kind": kind,
+        "error": message,
+        "message": message,
+        "action": "abort",
+        "hint": None,
+        "exit_code": 1,
+    }
+
+
+class CliParser(argparse.ArgumentParser):
+    def error(self, message):
+        arguments = getattr(self, "raw_arguments", [])
+        output = os.environ.get("CLAW_OUTPUT_FORMAT", "text").lower()
+        for index, value in enumerate(arguments):
+            if value.startswith("--output-format="):
+                output = value.split("=", 1)[1].lower()
+            elif value == "--output-format" and index + 1 < len(arguments):
+                output = arguments[index + 1].lower()
+            elif value == "--json":
+                output = "json"
+        kind = (
+            "missing_flag_value"
+            if "expected" in message and "argument" in message
+            else "unknown_option"
+            if "unrecognized arguments" in message
+            else "invalid_flag_value"
+        )
+        if output in {"json", "stream-json"}:
+            print(json.dumps(error_payload(message, kind), ensure_ascii=False))
+        else:
+            self.print_usage(sys.stderr)
+            print(message, file=sys.stderr)
+        raise SystemExit(1)
+
+
 def parser():
-    p = argparse.ArgumentParser(prog="myclaude", add_help=False)
+    p = CliParser(prog="myclaude", add_help=False)
     p.add_argument("words", nargs="*")
     p.add_argument("--help", "-h", action="store_true")
     p.add_argument("--version", "-v", "-V", action="store_true")
@@ -92,8 +139,8 @@ def parser():
     p.add_argument("--acp", "-acp", action="store_true")
     p.add_argument("--print-system-prompt", action="store_true")
     p.add_argument("--date")
-    p.add_argument("--output", type=Path)
-    p.add_argument("--format", choices=["json", "jsonl"], default="json")
+    p.add_argument("--output", "-o", type=Path)
+    p.add_argument("--format", choices=["markdown", "json", "jsonl"], default="markdown")
     return p
 
 
@@ -188,15 +235,35 @@ async def run(args):
                         "SELECT id,title,updated_at FROM sessions ORDER BY updated_at DESC"
                     )
                 elif command == "export":
-                    value = ext.sessions.export(
-                        session_id or (rest[0] if rest else "latest"), args.format
-                    )
-                    if args.output:
-                        args.output.write_text(value, encoding="utf-8")
-                        value = {"output": str(args.output.resolve())}
-                    else:
+                    if len(rest) > 1 or (rest and args.output):
+                        raise ValueError(
+                            "unexpected_extra_args: export [PATH] [--session SESSION] [--output PATH]"
+                        )
+                    target = args.output or (Path(rest[0]) if rest else None)
+                    selected = ext.sessions.resolve(session_id or "latest")
+                    value = ext.sessions.export(selected["id"], args.format)
+                    if target:
+                        target.write_text(value, encoding="utf-8")
+                    if not target and args.output_format == "text":
                         print(value)
                         return 0
+                    emit(
+                        {
+                            "kind": "export",
+                            "action": "export",
+                            "status": "ok",
+                            "session_id": selected["id"],
+                            "messages": len(selected["messages"]),
+                            "file": str(target.resolve()) if target else str(db.path),
+                            **(
+                                {"markdown" if args.format == "markdown" else "content": value}
+                                if not target
+                                else {}
+                            ),
+                        },
+                        args,
+                    )
+                    return 0
                 elif command == "import":
                     if not rest:
                         raise ValueError("Usage: myclaude import PATH")
@@ -311,7 +378,9 @@ async def interact(ext, agent, session_id, prompt, args):
     for server in ext.mcp.list():
         if server["enabled"]:
             await ext.mcp.discover(server["name"], server["permission"])
-    final, text = None, ""
+    final, text, last_assistant = None, "", ""
+    tool_uses, tool_results, cache_events = [], [], []
+    compaction = None
     async for event in agent.run(
         ext.db.session(session_id), prompt, permission, ext.store.current.model_copy(deep=True)
     ):
@@ -319,8 +388,41 @@ async def interact(ext, agent, session_id, prompt, args):
             emit(event, args)
         elif event["type"] == "delta":
             text += event["text"]
-            if args.output_format == "text":
+            if args.output_format == "text" and not args.compact:
                 print(event["text"], end="", flush=True)
+        if event["type"] == "assistant":
+            last_assistant = event["message"].get("content") or ""
+        elif event["type"] == "tool_start":
+            tool_uses.append(
+                {"id": event["call_id"], "name": event["name"], "input": event["arguments"]}
+            )
+        elif event["type"] == "tool_result":
+            tool_results.append(
+                {
+                    "tool_use_id": event["call_id"],
+                    "tool_name": event["name"],
+                    "output": json.dumps(event["output"], ensure_ascii=False),
+                    "is_error": event["is_error"],
+                }
+            )
+        elif event["type"] == "cache_break":
+            cache_events.append(
+                {
+                    k: event[k]
+                    for k in (
+                        "unexpected",
+                        "reason",
+                        "previous_cache_read_input_tokens",
+                        "current_cache_read_input_tokens",
+                        "token_drop",
+                    )
+                }
+            )
+        elif event["type"] == "auto_compact":
+            compaction = {
+                "removed_messages": event["removed_message_count"],
+                "notice": "Earlier context compacted",
+            }
         if event["type"] == "run_end":
             final = event
     if args.output_format == "json":
@@ -329,12 +431,25 @@ async def interact(ext, agent, session_id, prompt, args):
                 "kind": "prompt",
                 "session_id": session_id,
                 "result": text,
+                "message": last_assistant,
+                "model": ext.store.current.model,
+                **(
+                    {"compact": True}
+                    if args.compact
+                    else {
+                        "iterations": (final or {}).get("turns", 0),
+                        "tool_uses": tool_uses,
+                        "tool_results": tool_results,
+                        "prompt_cache_events": cache_events,
+                        "auto_compaction": compaction,
+                    }
+                ),
                 **(final or {"status": "failed"}),
             },
             args,
         )
     elif args.output_format == "text":
-        print()
+        print(last_assistant if args.compact else "")
         if final and final.get("error"):
             print(final["error"], file=sys.stderr)
     return 0 if final and final["status"] == "completed" else 1
@@ -342,6 +457,7 @@ async def interact(ext, agent, session_id, prompt, args):
 
 def main(argv=None):
     p = parser()
+    p.raw_arguments = list(sys.argv[1:] if argv is None else argv)
     args = p.parse_intermixed_args(argv)
     if args.output_format not in {"text", "json", "stream-json"}:
         p.error("CLAW_OUTPUT_FORMAT must be text, json or stream-json")
@@ -391,16 +507,12 @@ def main(argv=None):
     except (Exception, KeyboardInterrupt) as error:
         from pydantic import ValidationError
 
-        emit(
-            {
-                "kind": "error",
-                "status": "error",
-                "message": str(error)
-                if isinstance(error, ValueError) and not isinstance(error, ValidationError)
-                else type(error).__name__,
-            },
-            args,
+        message = (
+            str(error)
+            if isinstance(error, ValueError) and not isinstance(error, ValidationError)
+            else type(error).__name__
         )
+        emit(error_payload(message), args)
         return 1
 
 

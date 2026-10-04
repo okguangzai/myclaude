@@ -64,11 +64,16 @@ async function save() {
             .filter(Boolean)
         : rulesMode.value;
     Object.keys(values)
-      .filter((k) => k.endsWith("_set"))
+      .filter(
+        (k) =>
+          k.endsWith("_set") ||
+          ["imported_mcp", "runtime_environment_names"].includes(k),
+      )
       .forEach((k) => delete values[k]);
     await api("/settings", json("PUT", values));
     await load();
-    notice.value = "配置已保存。下一次调用立即生效。";
+    notice.value =
+      "配置已保存。模型参数下一次调用生效；修改插件存储路径后请重启服务。";
     failure.value = false;
     emit("changed");
   } catch (e: any) {
@@ -299,6 +304,19 @@ onMounted(() =>
       >
       <details class="advanced-settings">
         <summary>插件发现与模型连接</summary>
+        <label
+          >插件安装目录<input
+            v-model="form.plugin_install_root"
+            placeholder="留空使用数据目录下的 plugins"
+        /></label>
+        <label
+          >兼容插件注册表<input
+            v-model="form.plugin_registry_path"
+            placeholder="可选：installed.json 的路径"
+        /></label>
+        <small
+          >相对路径以工作目录为基准；改变存储位置后需重启服务。注册表导入不会自动启用插件。</small
+        >
         <label
           >外部插件目录（每行一个）<textarea v-model="pluginRoots" rows="3" />
         </label>

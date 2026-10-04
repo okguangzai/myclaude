@@ -78,12 +78,24 @@ async def runtime_evaluate(
         "branch",
         "usage",
         "lanes",
+        "bash",
     ],
     body: dict,
 ):
     from .orchestration import branch_collisions, evaluate_policy, green_contract
     from .task_packet import validate_packet
 
+    if kind == "bash":
+        from .bash_validation import classify_command, validate_command
+
+        return {
+            "intent": classify_command(body["command"]),
+            **validate_command(
+                body["command"],
+                body.get("permission", "read-only"),
+                request.app.state.store.current.workspace,
+            ),
+        }
     if kind == "policy":
         return evaluate_policy(body["rules"], body["context"])
     if kind == "lanes":

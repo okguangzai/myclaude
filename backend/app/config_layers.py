@@ -1,7 +1,7 @@
 """Five-layer upstream settings discovery with provenance and explicit migration.
 
 Reading layers does not execute project hooks, start MCP commands or install plugins.
-Only mapped runtime fields are applied on an explicit import.
+Startup applies layers in memory; explicit import persists supported fields.
 """
 
 import json
@@ -25,7 +25,7 @@ def mask(value, key=""):
     normalized = key.lower().replace("-", "")
     if (
         normalized in SECRET_NAMES
-        or normalized in {"env", "headers"}
+        or normalized in {"env", "headers", "runtime_environment"}
         or normalized.endswith(("_key", "_token", "secret", "password"))
     ):
         return "[REDACTED]" if value else ""
@@ -87,6 +87,9 @@ def translate(source):
         "aliases": "model_aliases",
         "rulesImport": "rules_import",
         "sandbox": "sandbox_config",
+        "enabledPlugins": "plugin_enabled",
+        "env": "runtime_environment",
+        "mcpServers": "upstream_mcp_servers",
     }
     for old, new in mapping.items():
         if old in source:
@@ -118,6 +121,16 @@ def translate(source):
             "dontAsk": "read-only",
         }.get(mode, mode)
         consumed.add("permissions.defaultMode")
+    if "permissionMode" in source:
+        mode = source["permissionMode"]
+        changes["permission_mode"] = {
+            "plan": "read-only",
+            "default": "read-only",
+            "dontAsk": "read-only",
+            "acceptEdits": "workspace-write",
+            "bypassPermissions": "danger-full-access",
+        }.get(mode, mode)
+        consumed.add("permissionMode")
     if "deniedTools" in permissions:
         changes["denied_tools"] = permissions["deniedTools"]
         consumed.add("permissions.deniedTools")
@@ -152,6 +165,9 @@ def translate(source):
         "externalDirectories": "plugin_external_directories",
         "bundledRoot": "plugin_bundled_root",
         "enabled": "plugin_enabled",
+        "installRoot": "plugin_install_root",
+        "registryPath": "plugin_registry_path",
+        "maxOutputTokens": "plugin_max_output_tokens",
     }.items():
         if old in source.get("plugins", {}):
             changes[new] = source["plugins"][old]
@@ -168,6 +184,19 @@ def translate(source):
         if key in source.get("apiTimeout", {}):
             changes[target] = source["apiTimeout"][key]
             consumed.add("apiTimeout." + key)
+    if "oauth" in source:
+        from .oauth import OAuthConfig
+
+        raw = source["oauth"]
+        changes["oauth_config"] = OAuthConfig(
+            client_id=raw["clientId"],
+            authorize_url=raw["authorizeUrl"],
+            token_url=raw["tokenUrl"],
+            scopes=raw.get("scopes", []),
+            redirect_uri=raw.get("manualRedirectUrl")
+            or f"http://127.0.0.1:{raw.get('callbackPort', 8000)}/api/oauth/callback",
+        ).model_dump()
+        consumed.add("oauth")
 
     def leaves(value, prefix=""):
         for key, item in value.items():
@@ -189,8 +218,7 @@ def activate(store):
     )
     store.upstream_config = report["merged"]
     store.layer_report = mask({**report, **translated})
-    store.runtime_environment = {str(k): str(v) for k, v in report["merged"].get("env", {}).items()}
-    store.extra_secrets.update(v for v in store.runtime_environment.values() if len(v) >= 8)
+    store.remember_runtime_secrets()
     return store.layer_report
 
 

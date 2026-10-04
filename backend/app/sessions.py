@@ -183,6 +183,73 @@ def to_blocks(message):
     return result
 
 
+def render_markdown(root, path):
+    """Upstream CLI transcript format: metadata, text, tool summaries and usage."""
+    lines = [
+        "# Conversation Export",
+        "",
+        f"- **Session**: `{root['session_id']}`",
+        f"- **File**: `{path}`",
+        f"- **Messages**: {len(root['messages'])}",
+    ]
+    if root.get("workspace_root"):
+        lines.append(f"- **Workspace**: `{root['workspace_root']}`")
+    if root.get("fork"):
+        fork = root["fork"]
+        lines.append(
+            f"- **Forked from**: `{fork['parent_session_id']}` (branch `{fork.get('branch_name') or '(unnamed)'}`)"
+        )
+    if root.get("compaction"):
+        compaction = root["compaction"]
+        lines.append(
+            f"- **Compactions**: {compaction.get('count', 0)} (last removed {compaction.get('removed_message_count', 0)} messages)"
+        )
+    lines.extend(["", "---", ""])
+    for index, message in enumerate(root["messages"], 1):
+        lines.extend([f"## {index}. {message['role'].title()}", ""])
+        for block in message.get("blocks", []):
+            kind = block["type"]
+            if kind == "text":
+                if text := block["text"].rstrip():
+                    lines.extend([text, ""])
+            elif kind in {"tool_use", "tool_result"}:
+                key = block.get("id", block.get("tool_use_id", ""))
+                short = key if len(key) <= 12 else key[:12] + "…"
+                if kind == "tool_use":
+                    label = f"**Tool call** `{block['name']}` _(id `{short}`)_"
+                    payload = block["input"]
+                else:
+                    status = "error" if block.get("is_error") else "ok"
+                    label = (
+                        f"**Tool result** `{block.get('tool_name', '')}` _(id `{short}`, {status})_"
+                    )
+                    payload = block["output"]
+                if isinstance(payload, str):
+                    try:
+                        payload = json.loads(payload)
+                    except ValueError:
+                        payload = " ".join(payload.split())
+                summary = (
+                    json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+                    if not isinstance(payload, str)
+                    else payload
+                )
+                if len(summary) > 280:
+                    summary = summary[:279] + "…"
+                lines.append(label)
+                if summary:
+                    lines.append("> " + summary)
+                lines.append("")
+        if usage := message.get("usage"):
+            lines.extend(
+                [
+                    f"_tokens: in={usage.get('input_tokens', 0)} out={usage.get('output_tokens', 0)} cache_create={usage.get('cache_creation_input_tokens', 0)} cache_read={usage.get('cache_read_input_tokens', 0)}_",
+                    "",
+                ]
+            )
+    return "\n".join(lines)
+
+
 class Sessions:
     def __init__(self, db, jobs, store):
         self.db, self.jobs, self.store = db, jobs, store
@@ -289,6 +356,8 @@ class Sessions:
             "messages": [to_blocks(m) for m in session["messages"]],
         }
         root.pop("id", None)
+        if format == "markdown":
+            return self.store.redact(render_markdown(root, str(self.db.path)))
         if format == "jsonl":
             records = [
                 {

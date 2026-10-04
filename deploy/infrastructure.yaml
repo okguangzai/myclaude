@@ -318,14 +318,14 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: myclaude-auth@kubernetescrd,myclaude-strip@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: myclaude-auth@kubernetescrd
     traefik.ingress.kubernetes.io/router.tls: 'true'
   name: myclaude
   namespace: myclaude
 spec:
   ingressClassName: traefik
   rules:
-  - host: gitlab.csghome.fun
+  - host: myclaude.csghome.fun
     http:
       paths:
       - backend:
@@ -333,12 +333,12 @@ spec:
             name: myclaude
             port:
               number: 8000
-        path: /myclaude
+        path: /
         pathType: Prefix
   tls:
   - hosts:
-    - gitlab.csghome.fun
-    secretName: myclaude-tls
+    - myclaude.csghome.fun
+    secretName: myclaude-domain-tls
 ---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

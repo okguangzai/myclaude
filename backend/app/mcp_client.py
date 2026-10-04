@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import sys
 from contextlib import AsyncExitStack
 from pathlib import Path
@@ -147,10 +148,16 @@ class McpManager:
         self.configured = {}
         self.configuration_errors = []
         self.project_secrets = {}
-        raw_servers = getattr(store, "upstream_config", {}).get("mcpServers", {})
+        raw_servers = store.current.upstream_mcp_servers
         for name, raw in raw_servers.items():
             try:
-                transport = raw.get("type", "stdio" if raw.get("command") else "sse")
+
+                def expand(value):
+                    return os.path.expanduser(
+                        re.sub(r"\$\{([^}]+)\}", lambda m: os.environ.get(m[1], ""), value)
+                    )
+
+                transport = raw.get("type", "stdio" if raw.get("command") else "http")
                 transport = {"http": "streamable-http", "streamableHttp": "streamable-http"}.get(
                     transport, transport
                 )
@@ -164,12 +171,13 @@ class McpManager:
                 cfg = ServerConfig(
                     name=name,
                     transport=transport,
-                    command=raw.get("command", ""),
-                    args=raw.get("args", []),
-                    url=raw.get("url", ""),
+                    command=expand(raw.get("command", "")),
+                    args=[expand(arg) for arg in raw.get("args", [])],
+                    url=expand(raw.get("url", "")),
                     env_refs=refs["env"],
                     header_refs=refs["headers"],
                     enabled=not raw.get("disabled", False),
+                    timeout=max(1, (raw.get("toolCallTimeoutMs", 30000) + 999) // 1000),
                 )
                 self.configured[name] = cfg.model_dump()
             except (ValueError, TypeError, AttributeError) as error:
@@ -229,6 +237,11 @@ class McpManager:
         raw.pop("id", None)
         cfg = ServerConfig.model_validate(raw)
         require(permission, cfg.permission)
+        descriptor = self.store.current.upstream_mcp_servers.get(name, {})
+        if descriptor.get("oauth") or descriptor.get("headersHelper"):
+            raise ValueError(
+                "原配置的 MCP oauth/headersHelper 是描述项；远程认证请配置 header_refs，当前不会静默忽略认证配置"
+            )
         if not cfg.enabled:
             raise ValueError("MCP 服务尚未启用")
         async with self.locks.setdefault(name, asyncio.Lock()):

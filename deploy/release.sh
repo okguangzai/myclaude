@@ -2,10 +2,15 @@
 set -eu
 ns=myclaude
 previous=$(kubectl -n "$ns" get deployment myclaude -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+previous_revision=$(kubectl -n "$ns" get deployment myclaude -o jsonpath='{.metadata.annotations.deployment\.kubernetes\.io/revision}' 2>/dev/null || true)
 rollback() {
   trap - EXIT
   if [ -n "$previous" ]; then
-    kubectl -n "$ns" set image deployment/myclaude app="$previous" workspace="$previous"
+    if [ -n "$previous_revision" ]; then
+      kubectl -n "$ns" rollout undo deployment/myclaude --to-revision="$previous_revision"
+    else
+      kubectl -n "$ns" set image deployment/myclaude app="$previous" workspace="$previous"
+    fi
     kubectl -n "$ns" rollout status deployment/myclaude --timeout=180s || true
   fi
   printf 'FAILED commit=%s previous=%s\n' "$CI_COMMIT_SHA" "$previous" > deployment-result.txt

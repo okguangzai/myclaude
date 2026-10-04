@@ -54,7 +54,10 @@ npm.cmd run build
 原项目参考基线为 [ultraworkers/claw-code](https://github.com/ultraworkers/claw-code/tree/08106b0c3771ef5b4a5aa176acccd460e88b7325)。保留上游 [MIT License](LICENSE) 与版权声明。
 ## 服务器与自动发布
 
-私有仓库：<https://gitlab.csghome.fun/csg/myclaude>。服务器入口：<https://gitlab.csghome.fun/myclaude/>。
+私有仓库：<https://gitlab.csghome.fun/csg/myclaude>。服务器入口：<https://myclaude.csghome.fun/>。
 `main` 推送触发测试、镜像构建和 Kubernetes 发布，详见 [GitLab 部署与运维](docs/GitLab部署与运维.md)。
 Linux 流水线已有 **122 项测试通过**；云模型、Embedding、Qdrant 与页面访问验证见 [部署验收记录](docs/部署验收记录.md)。
 
+
+
+0.5 补齐配置/插件注册表、Markdown 导出和 JSON 契约，新增 Rust 缓存文件互读与 648 组 Bash 差分验收。独立域名部署、使用与兼容边界见上述文档；日常运行只需要 Python/Node，Rust 仅用于源码对照验收。

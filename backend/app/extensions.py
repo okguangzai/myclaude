@@ -758,10 +758,24 @@ class Extensions:
         argv, sandbox_env, isolation = wrap(argv, cfg.workspace, sandbox_request)
 
         async def work():
+            from .bash_validation import classify_command, validate_command
+
+            validation = (
+                validate_command(a["command"], permission, cfg.workspace)
+                if name == "bash"
+                else None
+            )
+            if validation and validation["decision"] == "Block":
+                raise PermissionError(validation["reason"])
             result = await process(argv, cfg.workspace, timeout=timeout, env=sandbox_env)
             return {
                 **result,
                 "isolation": isolation,
+                **(
+                    {"command_intent": classify_command(a["command"]), "validation": validation}
+                    if name == "bash"
+                    else {}
+                ),
                 "status": "completed" if result["exit_code"] == 0 else "failed",
             }
 
