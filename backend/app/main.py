@@ -29,6 +29,7 @@ from .tunnel import Tunnel
 
 class ChatRequest(BaseModel):
     session_id: str
+    attachments: list[str] = Field(default_factory=list, max_length=4)
     message: str = Field(min_length=1, max_length=16000)
     permission: Literal["read-only", "workspace-write", "danger-full-access"] = "read-only"
 
@@ -71,7 +72,7 @@ def create_app(data: Path = DATA, root: Path = ROOT):
     app = FastAPI(
         title="MyClaude API",
         root_path=os.environ.get("MYCLAUDE_ROOT_PATH", "").rstrip("/"),
-        version="0.7.0",
+        version="0.8.0",
         lifespan=lifespan,
         docs_url="/api/docs",
         redoc_url=None,
@@ -96,7 +97,7 @@ def create_app(data: Path = DATA, root: Path = ROOT):
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
-        allow_methods=["GET", "POST", "PUT"],
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
         allow_headers=["Content-Type"],
     )
 
@@ -122,7 +123,7 @@ def create_app(data: Path = DATA, root: Path = ROOT):
 
     @app.get("/api/health")
     async def health():
-        return {"ok": True, "version": "0.7.0", "service": "myclaude"}
+        return {"ok": True, "version": "0.8.0", "service": "myclaude"}
 
     @app.get("/api/overview")
     async def overview():
@@ -214,12 +215,20 @@ def create_app(data: Path = DATA, root: Path = ROOT):
             raise HTTPException(409, "该会话正在运行")
         if not body.message.strip():
             raise HTTPException(422, "消息不能为空")
+        from .media import Media
+
+        for key in body.attachments:
+            row, _ = Media(app.state.extensions).get(key)
+            if not row["mime"].startswith("image/"):
+                raise ValueError("只能附加图片")
         cfg = app.state.store.current.model_copy(deep=True)
         agent.active.add(body.session_id)
 
         async def events():
             try:
-                async for event in agent.run(session, body.message, body.permission, cfg):
+                async for event in agent.run(
+                    session, body.message, body.permission, cfg, body.attachments
+                ):
                     yield "data: " + json.dumps(event, ensure_ascii=False) + "\n\n"
             finally:
                 agent.active.discard(body.session_id)
@@ -283,6 +292,9 @@ def create_app(data: Path = DATA, root: Path = ROOT):
         )
 
     app.include_router(extension_router)
+    from .feature_api import router as feature_router
+
+    app.include_router(feature_router)
 
     dist = root / "frontend" / "dist"
     if (dist / "assets").exists():
@@ -292,6 +304,8 @@ def create_app(data: Path = DATA, root: Path = ROOT):
     async def frontend(path: str):
         if path.startswith("api/"):
             raise HTTPException(404, "接口不存在")
+        if path in {"manifest.webmanifest", "sw.js", "icon.svg"} and (dist / path).is_file():
+            return FileResponse(dist / path)
         if (dist / "index.html").exists():
             return FileResponse(dist / "index.html")
         return JSONResponse(

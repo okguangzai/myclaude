@@ -43,6 +43,7 @@ async function save() {
     const values = { ...form.value };
     values.fallback_primary = values.fallback_primary?.trim() || null;
     values.subagent_model = values.subagent_model?.trim() || null;
+    values.vision_model = values.vision_model?.trim() || null;
     values.plugin_external_directories = pluginRoots.value
       .split(/\r?\n/)
       .map((s) => s.trim())
@@ -161,7 +162,25 @@ onMounted(() =>
         >子 Agent 默认模型（可选）<input
           v-model="form.subagent_model"
           placeholder="留空继承对话模型"
-        /><small>子任务可指定模型；留空时共用当前连接和对话模型，无需额外 Key。</small></label>
+        /><small
+          >子任务可指定模型；留空时共用当前连接和对话模型，无需额外 Key。</small
+        ></label
+      >
+      <label
+        >图片模型（留空沿用对话模型）<input
+          v-model="form.vision_model"
+          placeholder="当前 qwen-flash 已验证支持图片"
+      /></label>
+      <label
+        >语音通道<select v-model="form.speech_provider">
+          <option value="auto">自动：NLS 不可用时使用百炼</option>
+          <option value="nls">NLS</option>
+          <option value="dashscope">百炼</option>
+        </select></label
+      >
+      <label>语音识别模型<input v-model="form.asr_model" /></label>
+      <label>语音合成模型<input v-model="form.tts_model" /></label>
+      <label>百炼发音人<input v-model="form.tts_voice" /></label>
       <label
         >API 基础地址<input
           v-model="form.base_url"

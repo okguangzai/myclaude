@@ -23,7 +23,7 @@ from .rag import RagService
 from .tools import Tools
 from .tunnel import Tunnel
 
-VERSION = "0.7.0"
+VERSION = "0.8.0"
 LOCAL = {
     "status",
     "doctor",
@@ -426,6 +426,11 @@ async def interact(ext, agent, session_id, prompt, args):
                 args.active_session_id = result["session_id"]
             elif result["kind"] == "permission":
                 args.permission = result["permission"]
+            elif result["kind"] == "attachment":
+                args.attachment_ids = [
+                    *getattr(args, "attachment_ids", []),
+                    *[r["id"] for r in result["items"]],
+                ][:4]
             emit(result, args)
             return 0
         prompt, permission = result["prompt"], result.get("permission", args.permission)
@@ -439,8 +444,13 @@ async def interact(ext, agent, session_id, prompt, args):
     tool_uses, tool_results, cache_events = [], [], []
     compaction = None
     async for event in agent.run(
-        ext.db.session(session_id), prompt, permission, ext.store.current.model_copy(deep=True)
+        ext.db.session(session_id),
+        prompt,
+        permission,
+        ext.store.current.model_copy(deep=True),
+        getattr(args, "attachment_ids", []),
     ):
+        args.attachment_ids = []
         if args.output_format == "stream-json":
             emit(event, args)
         elif event["type"] == "delta":

@@ -119,6 +119,9 @@ class Extensions:
     def __init__(self, db, store, client):
         self.db, self.store, self.client = db, store, client
         self.jobs = Jobs(db, store)
+        from .features import Features
+
+        self.features = Features(self)
         self.mcp = McpManager(self.jobs, store)
         self.plugins = Plugins(self.jobs, store)
         self.assets = Assets(store, self.plugins)

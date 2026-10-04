@@ -3,8 +3,9 @@ WORKDIR /build/frontend
 COPY frontend/package*.json ./
 RUN npm ci --registry=https://registry.npmmirror.com
 COPY frontend/ ./
+COPY backend/app/ide_extension.js /build/backend/app/ide_extension.js
 ARG VITE_BASE_PATH=/
-RUN npm run build
+RUN npm run test && npm run build
 
 FROM python:3.11-slim AS python-base
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1

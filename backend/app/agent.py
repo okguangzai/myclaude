@@ -27,7 +27,9 @@ class Agent:
         self.db, self.provider, self.tools, self.store = db, provider, tools, store
         self.active = set()
 
-    async def run(self, session: dict, prompt: str, permission: str, cfg):
+    async def run(self, session: dict, prompt: str, permission: str, cfg, attachments=None):
+        if self.tools.extensions and self.tools.extensions.features.prefs()["advisor"]:
+            permission = "read-only"
         session_id = session["id"]
         run_id = self.db.start_run(session_id, cfg.model, permission)
         inherited = current.get()
@@ -46,11 +48,17 @@ class Agent:
                 session_id,
                 JsonlSink(self.store.data / "traces" / (run_id + ".jsonl"), self.store.redact),
             )
-            if cfg.telemetry_enabled
+            if cfg.telemetry_enabled and cfg.privacy_store_traces
             else None
         )
         trace_token = active.set(tracer)
-        history = session["messages"] + [{"role": "user", "content": prompt}]
+        history = session["messages"] + [
+            {
+                "role": "user",
+                "content": prompt,
+                **({"attachments": attachments} if attachments else {}),
+            }
+        ]
         baseline = list(history)
         usage = {
             "input_tokens": 0,
@@ -63,7 +71,8 @@ class Agent:
 
         def event(kind, **data):
             safe = json.loads(self.store.redact(json.dumps(data, ensure_ascii=False)))
-            self.db.event(run_id, kind, safe)
+            if cfg.privacy_store_traces:
+                self.db.event(run_id, kind, safe)
             if tracer:
                 tracer.record(kind, safe)
             return {"type": kind, **safe}
@@ -230,7 +239,10 @@ class Agent:
                 else:
                     status, error = "limit", "达到 Agent 最大轮数，任务未确认完成"
             # Only save structurally complete turns; interrupted calls stay in the trace.
-            self.db.save_messages(session_id, history, prompt if not session["messages"] else None)
+            if cfg.privacy_store_history:
+                self.db.save_messages(
+                    session_id, history, prompt if not session["messages"] else None
+                )
         except asyncio.CancelledError:
             error = "用户停止或客户端断开连接"
             raise
@@ -248,18 +260,20 @@ class Agent:
                 if self.tools.extensions:
                     for child in self.tools.extensions.jobs.active_children(run_id):
                         await self.tools.extensions.jobs.stop(child["id"])
-                self.db.save_messages(
-                    session_id,
-                    baseline
-                    + [
-                        {
-                            "role": "assistant",
-                            "content": f"[运行未完成：{error or status}]",
-                        }
-                    ],
-                    prompt if not session["messages"] else None,
-                )
-            self.db.finish_run(run_id, status, turns, usage, error)
+                if cfg.privacy_store_history:
+                    self.db.save_messages(
+                        session_id,
+                        baseline
+                        + [
+                            {
+                                "role": "assistant",
+                                "content": f"[运行未完成：{error or status}]",
+                            }
+                        ],
+                        prompt if not session["messages"] else None,
+                    )
+            saved_error = error if cfg.privacy_store_traces else (status if error else None)
+            self.db.finish_run(run_id, status, turns, usage, saved_error)
             self.db.event(
                 run_id,
                 "run_end",
@@ -267,7 +281,7 @@ class Agent:
                     "status": status,
                     "usage": usage,
                     "turns": turns,
-                    "error": error,
+                    "error": saved_error,
                     "finish_reason": finish_reason,
                 },
             )
@@ -281,6 +295,12 @@ class Agent:
                         "error": error,
                         "finish_reason": finish_reason,
                     },
+                )
+            if self.tools.extensions and self.tools.extensions.features.prefs()["notifications"]:
+                self.tools.extensions.jobs.put(
+                    "notification",
+                    run_id,
+                    {"session_id": session_id, "status": status, "read": False},
                 )
             self.active.discard(session_id)
             current.reset(context_token)

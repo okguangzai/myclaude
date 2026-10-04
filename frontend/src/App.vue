@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -22,6 +22,29 @@ import {
   Users,
 } from "lucide-vue-next";
 import { api, apiBase } from "./api";
+import FeaturesPanel from "./components/FeaturesPanel.vue";
+import ShareView from "./components/ShareView.vue";
+const shareToken = new URLSearchParams(location.search).get("share");
+let notificationTimer: ReturnType<typeof setInterval>;
+const announced = new Set<string>();
+async function notify() {
+  try {
+    const data = await api("/features");
+    if (
+      !data.preferences.notifications ||
+      !data.preferences.desktop_notifications ||
+      !("Notification" in window) ||
+      Notification.permission !== "granted"
+    )
+      return;
+    for (const n of data.notifications) {
+      if (n.read || announced.has(n.id)) continue;
+      announced.add(n.id);
+      new Notification("MyClaude 运行结束", { body: n.status, tag: n.id });
+    }
+  } catch {}
+}
+onBeforeUnmount(() => clearInterval(notificationTimer));
 import ChatPanel from "./components/ChatPanel.vue";
 import SettingsPanel from "./components/SettingsPanel.vue";
 import KnowledgePanel from "./components/KnowledgePanel.vue";
@@ -42,6 +65,7 @@ const pages = [
   { id: "extensions", label: "扩展中心", icon: Plug, en: "Extensions" },
   { id: "tasks", label: "任务与协作", icon: Users, en: "Tasks" },
   { id: "runtime", label: "会话与运行时", icon: Terminal, en: "Runtime" },
+  { id: "features", label: "功能工作台", icon: Workflow, en: "Features" },
   { id: "settings", label: "设置", icon: Settings2, en: "Settings" },
 ];
 const page = ref("overview"),
@@ -96,10 +120,14 @@ const statCards = computed(() => [
     note: "实际接口返回的用量",
   },
 ]);
-onMounted(refresh);
+onMounted(() => {
+  refresh();
+  notificationTimer = setInterval(notify, 10000);
+});
 </script>
 <template>
-  <div class="app-shell" :class="{ collapsed }">
+  <ShareView v-if="shareToken" :token="shareToken" />
+  <div v-else class="app-shell" :class="{ collapsed }">
     <aside class="sidebar">
       <a class="brand" href="#" @click.prevent="go('overview')"
         ><div class="brand-mark">m<span>✳</span></div>
@@ -122,7 +150,7 @@ onMounted(refresh);
         <div class="local-card">
           <span class="live-dot"></span>
           <div>
-            <strong>本地工作空间</strong><small>Python + Vue · v0.4</small>
+            <strong>本地工作空间</strong><small>Python + Vue · v0.8.0</small>
           </div>
         </div>
         <div class="sidebar-footer">
@@ -297,6 +325,7 @@ onMounted(refresh);
         </template>
         <ChatPanel v-if="page === 'chat'" @changed="refresh" @navigate="go" />
         <ExtensionsPanel v-if="page === 'extensions'" />
+        <FeaturesPanel v-if="page === 'features'" @navigate="go" />
         <TasksPanel v-if="page === 'tasks'" />
         <RuntimePanel v-if="page === 'runtime'" />
         <KnowledgePanel v-if="page === 'knowledge'" @changed="refresh" />

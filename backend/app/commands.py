@@ -46,34 +46,8 @@ NAV = {
     "profile": "settings",
     "project": "settings",
 }
-# These are upstream placeholders with no web-equivalent engine; never call them implemented.
-UNSUPPORTED = {
-    "vim",
-    "voice",
-    "upgrade",
-    "share",
-    "feedback",
-    "desktop",
-    "ide",
-    "advisor",
-    "stickers",
-    "release-notes",
-    "keybindings",
-    "privacy-settings",
-    "terminal-setup",
-    "listen",
-    "speak",
-    "changelog",
-    "benchmark",
-    "migrate",
-    "autofix",
-    "macro",
-    "alias",
-    "rate-limit",
-    "notifications",
-    "screenshot",
-    "image",
-}
+# Original placeholder metadata stays in the source catalog; Python now implements these entries.
+UNSUPPORTED: set[str] = set()
 
 
 class Commands:
@@ -96,7 +70,16 @@ class Commands:
             for c in CATALOG["commands"]
         ]
 
-    async def execute(self, text, session_id, permission):
+    async def execute(self, text, session_id, permission, _replay=False):
+        expanded = self.ext.features.expand(text)
+        if not _replay:
+            self.ext.features.validate_recording(expanded, session_id)
+        response = await self._execute(expanded, session_id, permission)
+        if not _replay and expanded.strip().split()[0] != "/macro":
+            self.ext.features.record_command(expanded, session_id)
+        return response
+
+    async def _execute(self, text, session_id, permission):
         command, _, argument = text.strip().lstrip("/").partition(" ")
         command = self.aliases.get(command, command)
         argument = argument.strip()
@@ -125,6 +108,13 @@ class Commands:
         def need_session():
             if not session:
                 raise ValueError("此命令需要已有会话")
+
+        from .features import FEATURE_COMMANDS
+
+        if command in FEATURE_COMMANDS:
+            return await ext.features.command(
+                command, argument, session_id, permission, self.execute
+            )
 
         # Administrative operations have real parsers and local actions, independent of UI routing.
         if command in {"plugin", "skills", "agents", "mcp", "session"} and argument:

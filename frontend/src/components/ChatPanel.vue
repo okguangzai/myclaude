@@ -14,6 +14,143 @@ import {
 } from "lucide-vue-next";
 import { api, json, streamChat } from "../api";
 import Markdown from "./Markdown.vue";
+import ComposerEditor from "./ComposerEditor.vue";
+import {
+  uploadImage,
+  mediaUrl,
+  screenshot,
+  recordVoice,
+  installDesktop,
+} from "../media";
+const preferences = ref<any>({
+  vim: false,
+  voice: false,
+  advisor: false,
+  keybindings: { send: "Enter", new: "Alt+n", stop: "Escape", focus: "Alt+i" },
+});
+const attachments = ref<any[]>([]),
+  filePicker = ref<HTMLInputElement>(),
+  editor = ref<any>(),
+  recording = ref(false),
+  stickerPacks = ref<any[]>([]),
+  playing = ref("");
+let recorder: Awaited<ReturnType<typeof recordVoice>> | null = null;
+async function guarded(action: () => Promise<any>) {
+  try {
+    return await action();
+  } catch (e: any) {
+    error.value = e.message || "操作失败";
+  }
+}
+async function addImage(event: Event) {
+  await guarded(async () => {
+    for (const file of Array.from(
+      (event.target as HTMLInputElement).files || [],
+    )) {
+      if (attachments.value.length >= 4) throw Error("最多 4 张图片");
+      attachments.value.push(await uploadImage(file, file.name));
+    }
+    (event.target as HTMLInputElement).value = "";
+  });
+}
+async function capture() {
+  await guarded(async () => {
+    if (attachments.value.length >= 4) throw Error("最多 4 张图片");
+    attachments.value.push(await screenshot());
+  });
+}
+async function voice() {
+  await guarded(async () => {
+    if (recorder) {
+      const current = recorder;
+      recorder = null;
+      recording.value = false;
+      input.value += await current.stop();
+    } else {
+      recorder = await recordVoice(() => void voice());
+      recording.value = true;
+    }
+  });
+}
+async function speak() {
+  await guarded(async () => {
+    const text = [...messages.value]
+      .reverse()
+      .find(
+        (m) => m.role === "assistant" && typeof m.content === "string",
+      )?.content;
+    if (!text) throw Error("没有可朗读的回答");
+    const value = await api("/features/speech/speak", json("POST", { text }));
+    playing.value = mediaUrl(value.id);
+  });
+}
+async function featureAction(r: any) {
+  if (r.kind === "attachment") {
+    attachments.value.push(...r.items);
+    return true;
+  }
+  if (r.kind === "draft") {
+    input.value = r.text;
+    return true;
+  }
+  if (r.kind !== "ui") return false;
+  if (r.action === "feature-preferences") {
+    preferences.value = r.preferences;
+    if (r.command === "voice" && r.preferences.voice) await voice();
+    return true;
+  }
+  if (r.action === "image") {
+    filePicker.value?.click();
+    return true;
+  }
+  if (r.action === "screenshot") {
+    await capture();
+    return true;
+  }
+  if (r.action === "listen") {
+    await voice();
+    return true;
+  }
+  if (r.action === "speak") {
+    playing.value = mediaUrl(r.audio.id);
+    return true;
+  }
+  if (r.action === "stickers") {
+    stickerPacks.value = r.packs;
+    return true;
+  }
+  if (r.action === "desktop") {
+    await installDesktop();
+    return true;
+  }
+  if (r.action === "ide") {
+    emit("navigate", "features");
+    return true;
+  }
+  return false;
+}
+function globalKey(e: KeyboardEvent) {
+  const key = [
+    e.ctrlKey ? "Ctrl" : "",
+    e.altKey ? "Alt" : "",
+    e.shiftKey ? "Shift" : "",
+    e.metaKey ? "Meta" : "",
+    e.key.length === 1 ? e.key.toLowerCase() : e.key,
+  ]
+    .filter(Boolean)
+    .join("+");
+  if (key === preferences.value.keybindings.focus) {
+    e.preventDefault();
+    editor.value?.focus();
+  } else if (key === preferences.value.keybindings.stop && busy.value) {
+    e.preventDefault();
+    controller?.abort();
+  } else if (key === preferences.value.keybindings.new && !busy.value) {
+    e.preventDefault();
+    newChat();
+  }
+}
+
 const emit = defineEmits(["changed", "navigate"]);
 const questions = ref<any[]>([]),
   answerText = ref(""),
@@ -37,6 +174,8 @@ async function command(text: string): Promise<string | null> {
       permission: permission.value,
     }),
   );
+  input.value = "";
+  if (await featureAction(r)) return null;
   if (r.kind === "prompt") {
     if (r.permission) permission.value = r.permission;
     return r.prompt;
@@ -101,7 +240,11 @@ async function refresh() {
   sessions.value = await api("/sessions");
 }
 async function removeSession(id: string) {
-  if (busy.value || !window.confirm("删除这段对话？系统会保留可恢复副本和运行记录。")) return;
+  if (
+    busy.value ||
+    !window.confirm("删除这段对话？系统会保留可恢复副本和运行记录。")
+  )
+    return;
   try {
     await api("/sessions/" + id, { method: "DELETE" });
     if (selected.value === id) newChat();
@@ -112,6 +255,7 @@ async function removeSession(id: string) {
   }
 }
 async function select(id: string) {
+  attachments.value = [];
   if (busy.value) return;
   try {
     const s = await api("/sessions/" + id);
@@ -141,7 +285,9 @@ async function bottom() {
   });
 }
 async function send(text = input.value) {
-  if (!text.trim() || busy.value) return;
+  if (busy.value) return;
+  if (!text.trim() && attachments.value.length) text = "请分析所附图片";
+  if (!text.trim()) return;
   if (text.trim().startsWith("/")) {
     try {
       const prompt = await command(text);
@@ -161,13 +307,20 @@ async function send(text = input.value) {
   try {
     if (!selected.value)
       selected.value = (await api("/sessions", json("POST"))).id;
-    messages.value.push({ role: "user", content: text });
+    const sentAttachments = attachments.value.map((a) => a.id);
+    messages.value.push({
+      role: "user",
+      content: text,
+      attachments: sentAttachments,
+    });
+    attachments.value = [];
     await bottom();
     let index = -1;
     await streamChat(
       {
         session_id: selected.value,
         message: text,
+        attachments: sentAttachments,
         permission: permission.value,
       },
       controller.signal,
@@ -209,6 +362,10 @@ async function send(text = input.value) {
   }
 }
 onMounted(() => {
+  api("/features")
+    .then((r) => (preferences.value = r.preferences))
+    .catch((e) => (error.value = e.message));
+  window.addEventListener("keydown", globalKey);
   refresh().catch((e) => (error.value = e.message));
   questionTimer = setInterval(async () => {
     if (selected.value && busy.value) {
@@ -220,6 +377,8 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
   controller?.abort();
+  recorder?.cancel();
+  window.removeEventListener("keydown", globalKey);
   clearInterval(questionTimer);
 });
 </script>
@@ -235,11 +394,24 @@ onBeforeUnmount(() => {
         :key="s.id"
         style="display: flex; align-items: center"
       >
-        <button class="session-item" style="flex: 1; min-width: 0" :class="{ chosen: selected === s.id }" :disabled="busy" @click="select(s.id)">
-        <span>{{ s.title }}</span
-        ><ChevronRight :size="14" />
+        <button
+          class="session-item"
+          style="flex: 1; min-width: 0"
+          :class="{ chosen: selected === s.id }"
+          :disabled="busy"
+          @click="select(s.id)"
+        >
+          <span>{{ s.title }}</span
+          ><ChevronRight :size="14" />
         </button>
-        <button class="btn" :disabled="busy" :aria-label="'删除对话：' + s.title" @click="removeSession(s.id)"><Trash2 :size="14" /></button>
+        <button
+          class="btn"
+          :disabled="busy"
+          :aria-label="'删除对话：' + s.title"
+          @click="removeSession(s.id)"
+        >
+          <Trash2 :size="14" />
+        </button>
       </div>
       <p v-if="!sessions.length" class="muted small">
         你的第一段对话，<br />从这里开始。
@@ -290,6 +462,15 @@ onBeforeUnmount(() => {
             <div class="message-label">
               {{ m.role === "user" ? "你" : "MyClaude"
               }}<span v-if="m.role !== 'user'">AGENT</span>
+            </div>
+            <div v-if="m.attachments?.length" class="action-row">
+              <img
+                v-for="id in m.attachments"
+                :key="id"
+                :src="mediaUrl(id)"
+                alt="对话图片"
+                style="max-width: 250px; max-height: 200px"
+              />
             </div>
             <Markdown v-if="m.content" :text="m.content" /><span
               v-else-if="m.loading"
@@ -365,23 +546,90 @@ onBeforeUnmount(() => {
             </button>
           </div>
         </div>
+        <div class="action-row media-toolbar">
+          <input
+            ref="filePicker"
+            type="file"
+            hidden
+            accept="image/png,image/jpeg,image/webp"
+            multiple
+            @change="addImage"
+          />
+          <button class="btn" :disabled="busy" @click="filePicker?.click()">
+            添加图片
+          </button>
+          <button class="btn" :disabled="busy" @click="capture">截图</button>
+          <button class="btn" :disabled="busy" @click="voice">
+            {{ recording ? "停止录音并转写" : "语音输入" }}
+          </button>
+          <button class="btn" @click="speak">朗读回答</button>
+          <button class="btn" @click="guarded(() => command('/stickers'))">
+            贴纸
+          </button>
+          <span v-if="preferences.advisor" class="status">顾问模式 · 只读</span>
+        </div>
+        <audio
+          v-if="playing"
+          :src="playing"
+          controls
+          autoplay
+          style="width: 100%"
+        ></audio>
+        <div v-if="stickerPacks.length" class="action-row">
+          <template v-for="pack in stickerPacks" :key="pack.id"
+            ><button
+              v-for="item in pack.items"
+              :key="item"
+              class="btn"
+              @click="
+                input += item;
+                stickerPacks = [];
+              "
+            >
+              {{ item }}
+            </button></template
+          >
+        </div>
+        <div class="action-row">
+          <div v-for="(a, i) in attachments" :key="a.id">
+            <img
+              :src="mediaUrl(a.id)"
+              :alt="a.name"
+              style="max-height: 80px; max-width: 100px"
+            /><button
+              class="btn"
+              :aria-label="'移除附件 ' + a.name"
+              @click="attachments.splice(i, 1)"
+            >
+              ×
+            </button>
+          </div>
+        </div>
         <div class="composer">
-          <textarea
+          <ComposerEditor
+            ref="editor"
             v-model="input"
-            placeholder="描述你的问题或任务，或输入 /help 查看命令…"
-            rows="3"
-            aria-label="输入消息"
-            @keydown.enter.exact.prevent="send()"
+            :vim="preferences.vim"
+            :keys="preferences.keybindings"
             :disabled="busy"
-          ></textarea>
+            @send="send()"
+            @new="newChat"
+            @stop="controller?.abort()"
+          />
           <div class="composer-bottom">
-            <select v-model="permission" aria-label="工具权限" :disabled="busy">
+            <select
+              v-model="permission"
+              aria-label="工具权限"
+              :disabled="busy || preferences.advisor"
+            >
               <option value="read-only">只读工作区</option>
               <option value="workspace-write">允许工作区写入</option>
               <option value="danger-full-access">
                 允许执行（本机进程）
               </option></select
-            ><span class="small muted">Enter 发送 · Shift + Enter 换行</span
+            ><span class="small muted"
+              >{{ preferences.keybindings.send }} 发送 · Shift + Enter
+              换行</span
             ><button
               v-if="busy"
               class="send stop"
@@ -392,7 +640,7 @@ onBeforeUnmount(() => {
             ><button
               v-else
               class="send"
-              :disabled="!input.trim()"
+              :disabled="!input.trim() && !attachments.length"
               aria-label="发送消息"
               @click="send()"
             >

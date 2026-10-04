@@ -78,7 +78,7 @@ class McpServer:
             result = {
                 "protocolVersion": "2025-03-26",
                 "capabilities": {"tools": {}},
-                "serverInfo": {"name": "myclaude", "version": "0.7.0"},
+                "serverInfo": {"name": "myclaude", "version": "0.8.0"},
             }
         elif method == "ping":
             result = {}

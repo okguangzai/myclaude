@@ -603,6 +603,4 @@ async def test_commands_session_workflows(runtime):
     assert (await commands.execute("/plan investigate", key, "danger-full-access"))[
         "permission"
     ] == "read-only"
-    assert (await commands.execute("/vim", key, "read-only"))["result"][
-        "status"
-    ] == "upstream-placeholder"
+    assert (await commands.execute("/vim on", key, "workspace-write"))["preferences"]["vim"] is True

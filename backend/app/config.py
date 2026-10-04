@@ -38,6 +38,16 @@ class Settings(BaseModel):
     provider: Literal["openai", "anthropic"] = "openai"
     model: str = "qwen-flash"
     subagent_model: str | None = None
+    vision_model: str | None = None
+    speech_provider: Literal["auto", "nls", "dashscope"] = "auto"
+    asr_model: str = "qwen3-asr-flash"
+    tts_model: str = "qwen3-tts-flash"
+    tts_voice: str = "Cherry"
+    privacy_store_history: bool = True
+    privacy_store_traces: bool = True
+    privacy_allow_cloud: bool = True
+    rate_limit_rpm: int = Field(default=120, ge=1, le=6000)
+    rate_limit_concurrency: int = Field(default=4, ge=1, le=32)
     upstream_preferences: dict = Field(default_factory=dict)
     base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     api_key: str = ""

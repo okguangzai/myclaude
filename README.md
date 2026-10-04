@@ -2,7 +2,7 @@
 
 这是面向 AI 应用与 Agent 开发学习的 Python 重构版。后端使用 FastAPI，前端使用 Vue 3 和 TypeScript，提供模型配置、流式聊天、55 个上游工具、MCP、插件/hooks、多 Agent、后台任务、知识库检索和运行轨迹。项目不依赖 Rust 可执行文件。
 
-v0.7 补齐 CLI 本地命令、工具返回与参数、子 Agent 类型及模型、会话管理、Config 偏好、LSP/Cron 和 PDF/Lane 辅助模块。11 个 crate 职责均有 Python 对应实现；原版功能、Python/Vue 适配和原版占位项见 [迁移收口清单](docs/迁移收口清单.md)。保留原 Rust 实际执行生成的差分夹具，日常运行和 CI 无需 Rust。
+v0.8 新增原版 25 个占位命令的实际实现和 Vue 管理页，见 [完整功能使用与验收](docs/完整功能使用与验收.md)。此前 v0.7 补齐 CLI 本地命令、工具返回与参数、子 Agent 类型及模型、会话管理、Config 偏好、LSP/Cron 和 PDF/Lane 辅助模块。11 个 crate 职责均有 Python 对应实现；原版功能、Python/Vue 适配和原版占位项见 [迁移收口清单](docs/迁移收口清单.md)。保留原 Rust 实际执行生成的差分夹具，日常运行和 CI 无需 Rust。
 
 ## 现在开始
 

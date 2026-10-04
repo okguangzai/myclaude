@@ -9,6 +9,7 @@ from collections.abc import AsyncIterator
 import httpx
 
 from .config import Settings
+from .request_policy import Limiter, allow_cloud
 
 
 class ProviderError(Exception):
@@ -37,14 +38,18 @@ async def check_response(response: httpx.Response, label="模型"):
 class Provider:
     def __init__(self, client: httpx.AsyncClient, oauth=None, store=None):
         self.client, self.oauth, self.store = client, oauth, store
+        self.limiter = Limiter()
 
     async def stream(
         self, cfg: Settings, messages: list, tools: list, system: str
     ) -> AsyncIterator[dict]:
         if cfg.plugin_max_output_tokens is not None:
             cfg = cfg.model_copy(update={"max_tokens": cfg.plugin_max_output_tokens})
-        requested = cfg.fallback_primary or cfg.model
-        models = list(dict.fromkeys([requested, *cfg.fallback_models]))
+        has_images = any(m.get("attachments") for m in messages)
+        requested = (cfg.vision_model if has_images else None) or cfg.fallback_primary or cfg.model
+        models = (
+            [requested] if has_images else list(dict.fromkeys([requested, *cfg.fallback_models]))
+        )
         last_error = None
         for index, model in enumerate(models):
             attempt_cfg = cfg.model_copy(update={"model": model})
@@ -128,17 +133,49 @@ class Provider:
             cfg = cfg.model_copy(update={"api_key": await self.oauth.access_token()})
         if not cfg.api_key:
             raise ProviderError("请在配置页面填写对话模型 API Key")
+        allow_cloud(cfg, cfg.base_url)
+        if any(m.get("attachments") for m in messages):
+            if not self.store:
+                raise ValueError("附件存储不可用")
+            from types import SimpleNamespace
+
+            from .db import Database
+            from .jobs import Jobs
+            from .media import Media
+
+            media = Media(
+                SimpleNamespace(
+                    store=self.store,
+                    jobs=Jobs(
+                        Database(self.store.data / "app.sqlite", recover=False),
+                        self.store,
+                    ),
+                )
+            )
+            messages = [
+                {
+                    **m,
+                    "content": (
+                        [{"type": "text", "text": m.get("content") or "请分析图片"}]
+                        + [media.image_content(key, cfg.provider) for key in m["attachments"]]
+                    ),
+                }
+                if m.get("attachments")
+                else m
+                for m in messages
+            ]
         adapter = self._anthropic if cfg.provider == "anthropic" else self._openai
         for attempt in range(cfg.provider_retries + 1):
             emitted = False
             path = "/messages" if cfg.provider == "anthropic" else "/chat/completions"
             record_http("started", attempt, path, model=cfg.model, provider=cfg.provider)
             try:
-                async for event in adapter(cfg, messages, tools, system):
-                    emitted = True
-                    if event["type"] == "complete":
-                        event = {**event, "model": cfg.model, "provider": cfg.provider}
-                    yield event
+                async with self.limiter.slot(cfg):
+                    async for event in adapter(cfg, messages, tools, system):
+                        emitted = True
+                        if event["type"] == "complete":
+                            event = {**event, "model": cfg.model, "provider": cfg.provider}
+                        yield event
                 record_http("succeeded", attempt, path, model=cfg.model)
                 return
             except (httpx.TransportError, ProviderError) as error:
@@ -299,7 +336,11 @@ class Provider:
                         }
                     )
             else:
-                blocks = [{"type": "text", "text": message["content"]}]
+                blocks = (
+                    message["content"]
+                    if isinstance(message["content"], list)
+                    else [{"type": "text", "text": message["content"]}]
+                )
             if result and result[-1]["role"] == role:
                 result[-1]["content"].extend(blocks)
             else:
@@ -399,11 +440,13 @@ class Provider:
         key = cfg.embedding_api_key or cfg.api_key
         if not key:
             raise ProviderError("请配置向量模型 API Key")
-        response = await self.client.post(
-            cfg.embedding_base_url + "/embeddings",
-            headers={"Authorization": "Bearer " + key},
-            json={"model": cfg.embedding_model, "input": texts},
-        )
+        allow_cloud(cfg, cfg.embedding_base_url)
+        async with self.limiter.slot(cfg):
+            response = await self.client.post(
+                cfg.embedding_base_url + "/embeddings",
+                headers={"Authorization": "Bearer " + key},
+                json={"model": cfg.embedding_model, "input": texts},
+            )
         await check_response(response, "向量模型")
         rows = sorted(response.json()["data"], key=lambda row: row["index"])
         vectors = [row["embedding"] for row in rows]

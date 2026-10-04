@@ -79,7 +79,7 @@ def record_http(state, attempt, path, **attributes):
         tracer.http(state, attempt, path, **attributes)
 
 
-def request_profile(version="0.7.0", betas=(), extra=None):
+def request_profile(version="0.8.0", betas=(), extra=None):
     return {
         "headers": {
             "anthropic-version": "2023-06-01",
