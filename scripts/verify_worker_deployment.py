@@ -53,6 +53,8 @@ def main():
                     raise TimeoutError("Worker verification exceeded 180 seconds")
                 time.sleep(1)
             assert job["status"] == "completed", job["status"]
+            finish_reason = job["result"].get("finish_reason")
+            assert finish_reason and finish_reason not in {"unknown", "error"}
             assert "MYCLAUDE_V06_WORKER_OK" in job.get("output", "")
             history = client.get("api/sessions/" + started["session_id"])
             history.raise_for_status()
@@ -79,6 +81,7 @@ def main():
                 "job_id": started["job_id"],
                 "session_id": started["session_id"],
                 "status": job["status"],
+                "finish_reason": finish_reason,
                 "marker": True,
                 "read_file_call": True,
                 "state_file": True,
