@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -63,7 +64,12 @@ def parser():
         choices=["read-only", "workspace-write", "danger-full-access"],
         default=None,
     )
-    p.add_argument("--output-format", choices=["text", "json", "stream-json"], default="text")
+    p.add_argument(
+        "--output-format",
+        type=str.lower,
+        choices=["text", "json", "stream-json"],
+        default=os.environ.get("CLAW_OUTPUT_FORMAT", "text").lower(),
+    )
     p.add_argument("--json", action="store_true")
     p.add_argument("--cwd", "-C", "--directory")
     p.add_argument("--data-dir", type=Path, default=DATA)
@@ -76,6 +82,10 @@ def parser():
     p.add_argument("--base-commit")
     p.add_argument("--allowed-tools", "--allowedTools")
     p.add_argument("--print", action="store_true")
+    p.add_argument("--stdin", "--prompt-stdin", action="store_true")
+    p.add_argument(
+        "--compact", action="store_true", help="Print only assistant text in prompt mode"
+    )
     p.add_argument("--dangerously-skip-permissions", "--skip-permissions", action="store_true")
     p.add_argument("--dump-manifests", action="store_true")
     p.add_argument("--manifests-dir", type=Path)
@@ -165,6 +175,12 @@ async def run(args):
                 )
                 session_id = loaded["id"]
             words = args.words
+            if args.session and not words and not args.prompt:
+                emit(
+                    {"kind": "resume", "status": "ok", "result": ext.sessions.resolve(session_id)},
+                    args,
+                )
+                return 0
             command, rest = (words[0], words[1:]) if words else (None, [])
             if command in LOCAL and not args.prompt:
                 if command in {"sessions", "session"} and not rest:
@@ -248,6 +264,9 @@ async def run(args):
                 emit({"kind": command, "status": "ok", "result": value}, args)
                 return 0
             prompt = args.prompt or " ".join(words)
+            if args.stdin:
+                piped = sys.stdin.read().strip()
+                prompt = "\n".join(part for part in (prompt, piped) if part)
             if prompt:
                 return await interact(ext, agent, session_id, prompt, args)
             if not sys.stdin.isatty():
@@ -324,6 +343,15 @@ async def interact(ext, agent, session_id, prompt, args):
 def main(argv=None):
     p = parser()
     args = p.parse_intermixed_args(argv)
+    if args.output_format not in {"text", "json", "stream-json"}:
+        p.error("CLAW_OUTPUT_FORMAT must be text, json or stream-json")
+    if args.words and args.words[0] == "system-prompt":
+        args.print_system_prompt = True
+        args.words = args.words[1:]
+    if args.compact and args.words and args.words[0] in LOCAL:
+        p.error("--compact is only supported with prompt mode")
+    if args.words and args.words[0] == "prompt":
+        args.words = args.words[1:]
     if args.json:
         args.output_format = "stream-json"
     if args.version or args.words == ["version"]:

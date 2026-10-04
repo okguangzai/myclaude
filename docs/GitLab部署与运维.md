@@ -25,7 +25,7 @@ flowchart LR
   H --> M[云模型 API]
 ```
 
-`.gitlab-ci.yml` 在 `main` 上自动执行；构建的 Dockerfile 必须完成 Python 测试和 Vue 构建后才能生成最终镜像。发布按 `myclaude-production` 串行执行；失败后任务仍标记失败，同时恢复上一镜像。首次发布没有旧镜像可恢复。默认分支受保护，禁止强制推送。
+`.gitlab-ci.yml` 在 `main` 上自动执行；构建的 Dockerfile 必须完成 Python 测试和 Vue 构建后才能生成最终镜像。发布按 `myclaude-production` 串行执行；每次升级前在 PVC `/data/backups/<UTC时间>/` 使用 SQLite backup API 备份数据库及配置；失败后任务仍标记失败，同时恢复上一镜像。首次发布没有旧镜像可恢复。默认分支受保护，禁止强制推送。
 
 ## 隔离与凭据
 
@@ -62,7 +62,7 @@ kubectl -n myclaude rollout status deployment/myclaude --timeout=180s
 
 ## 模型配置
 
-登录页面后进入“模型与配置”，可编辑主模型、备用路由和 Embedding；连接测试会实际调用对应服务。普通 Agent 对话只需要主 LLM；知识库检索需要 Embedding 和 Qdrant。已有本机云模型配置会在首次部署时安全复制，之后本机和服务器各自独立保存。
+登录页面后进入“设置”，可编辑主模型、备用路由和 Embedding；连接测试会实际调用对应服务。普通 Agent 对话只需要主 LLM；知识库检索需要 Embedding 和 Qdrant。已有本机云模型配置会在首次部署时安全复制，之后本机和服务器各自独立保存。
 
 ## 范围说明
 

@@ -5,13 +5,25 @@ previous=$(kubectl -n "$ns" get deployment myclaude -o jsonpath='{.spec.template
 rollback() {
   trap - EXIT
   if [ -n "$previous" ]; then
-    kubectl -n "$ns" set image deployment/myclaude app="$previous"
+    kubectl -n "$ns" set image deployment/myclaude app="$previous" workspace="$previous"
     kubectl -n "$ns" rollout status deployment/myclaude --timeout=180s || true
   fi
   printf 'FAILED commit=%s previous=%s\n' "$CI_COMMIT_SHA" "$previous" > deployment-result.txt
   exit 1
 }
 trap rollback EXIT
+if [ -n "$previous" ]; then
+  kubectl -n "$ns" exec deployment/myclaude -- python -c '
+import datetime, pathlib, shutil, sqlite3
+root = pathlib.Path("/data")
+dest = root / "backups" / datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+dest.mkdir(parents=True, exist_ok=False)
+with sqlite3.connect(root / "app.sqlite") as source, sqlite3.connect(dest / "app.sqlite") as target:
+    source.backup(target)
+shutil.copy2(root / "settings.json", dest / "settings.json")
+print("Pre-release SQLite and configuration backup complete")
+'
+fi
 # Configuration and credentials are pre-provisioned, never managed by job artifacts.
 sed "s|IMAGE_PLACEHOLDER|$IMAGE_REPOSITORY:$CI_COMMIT_SHA|g" deploy/kubernetes.yaml | kubectl apply -f -
 kubectl -n "$ns" rollout status deployment/myclaude --timeout=300s

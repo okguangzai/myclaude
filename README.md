@@ -2,7 +2,7 @@
 
 这是面向 AI 应用与 Agent 开发学习的 Python 重构版。后端使用 FastAPI，前端使用 Vue 3 和 TypeScript，提供模型配置、流式聊天、55 个上游工具、MCP、插件/hooks、多 Agent、后台任务、知识库检索和运行轨迹。项目不依赖 Rust 可执行文件。
 
-v0.4 继续推进全量迁移：新增独立轻量 Agent、工作区 RAG 服务、模型测试服务、分层规则与配置、跨模型故障切换、Trident 压缩、任务心跳、MCP 健康与重试、插件目录发现、请求缓存诊断与本地追踪。当前有 **116 项自动测试通过**，包括原仓库 12 个模型场景经过真实 Python Agent/工具的验证。尚未完成原版所有接口与参数的逐项等价验收，详细范围见 [全量迁移进度](docs/全量迁移进度.md)。
+v0.4 继续推进全量迁移：新增独立轻量 Agent、工作区 RAG 服务、模型测试服务、分层规则与配置、跨模型故障切换、Trident 压缩、任务心跳、MCP 健康与重试、插件目录发现、请求缓存诊断与本地追踪。当前有 **121 项自动测试通过**，包括原仓库 12 个模型场景经过真实 Python Agent/工具的验证。尚未完成原版所有接口与参数的逐项等价验收，详细范围见 [全量迁移进度](docs/全量迁移进度.md)。
 
 ## 现在开始
 
@@ -52,7 +52,7 @@ npm.cmd run build
 ```
 
 原项目参考基线为 [ultraworkers/claw-code](https://github.com/ultraworkers/claw-code/tree/08106b0c3771ef5b4a5aa176acccd460e88b7325)。保留上游 [MIT License](LICENSE) 与版权声明。
-# 服务器与自动发布
+## 服务器与自动发布
 
 私有仓库：<https://gitlab.csghome.fun/csg/myclaude>。服务器入口：<https://gitlab.csghome.fun/myclaude/>。
 `main` 推送触发测试、镜像构建和 Kubernetes 发布，详见 [GitLab 部署与运维](docs/GitLab部署与运维.md)。
