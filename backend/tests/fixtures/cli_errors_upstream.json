@@ -1,0 +1,330 @@
+{
+  "baseline": "08106b0c3771ef5b4a5aa176acccd460e88b7325",
+  "cases": [
+    {
+      "arguments": [
+        "--unknown-option"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_credentials",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "--model"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_flag_value",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "--permission-mode"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_flag_value",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "--permission-mode",
+        "invalid"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "invalid_permission_mode",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "--reasoning-effort"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_flag_value",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "--reasoning-effort",
+        "HIGH"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "invalid_flag_value",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "--base-commit"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_flag_value",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "--base-commit",
+        "HEAD"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "invalid_flag_value",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "--allowedTools"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_argument",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "--allowed-tools="
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_argument",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "--allowedTools",
+        "status"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_argument",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "-p"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_prompt",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "-p",
+        ""
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_prompt",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "-p",
+        "  "
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_prompt",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "-p",
+        "--model"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_prompt",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "-p",
+        "--"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_prompt",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "export",
+        "--output"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_flag_value",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "export",
+        "a.md",
+        "b.md"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "unexpected_extra_args",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "dump-manifests",
+        "--manifests-dir"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_flag_value",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "dump-manifests",
+        "--manifests-dir="
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "missing_flag_value",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "config",
+        "show",
+        "extra"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "unexpected_extra_args",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "config",
+        "env",
+        "extra"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "unexpected_extra_args",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "agents",
+        "show",
+        "name",
+        "extra"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "unexpected_extra_args",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "skills",
+        "show",
+        "name",
+        "extra"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "unexpected_extra_args",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "system-prompt",
+        "--unknown-option"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "unknown_option",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "agents",
+        "list",
+        "--unknown-option"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "unknown_option",
+        "has_hint": true
+      }
+    },
+    {
+      "arguments": [
+        "skills",
+        "list",
+        "--unknown-option"
+      ],
+      "expected": {
+        "exit_code": 1,
+        "status": "error",
+        "error_kind": "unknown_option",
+        "has_hint": true
+      }
+    }
+  ]
+}

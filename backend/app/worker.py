@@ -1,8 +1,11 @@
 """Worker boot control plane. Events describe observed state, never fabricate job results."""
 
+import json
 import os
 import re
+import tempfile
 import time
+from contextlib import suppress
 from pathlib import Path
 
 
@@ -12,15 +15,140 @@ def event(worker, kind, status=None, detail=None, payload=None):
         worker["status"] = status
     worker.setdefault("events", []).append(
         {
+            "seq": len(worker.get("events", [])) + 1,
             "sequence": len(worker.get("events", [])) + 1,
             "kind": kind,
             "status": worker["status"],
             "created_at": int(time.time()),
+            "timestamp": worker["updated_at"],
             "detail": detail,
             "payload": payload,
         }
     )
+    emit_state_file(worker)
     return worker
+
+
+def emit_state_file(worker):
+    """Best-effort Rust-compatible observer surface; SQLite remains authoritative."""
+    from .tools import safe_path
+
+    temporary = None
+    try:
+        path = safe_path(worker["cwd"], ".claw/worker-state.json")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        snapshot = {
+            "worker_id": worker["worker_id"],
+            "status": worker["status"],
+            "is_ready": worker["status"] == "ready_for_prompt",
+            "trust_gate_cleared": worker["trust_gate_cleared"],
+            "prompt_in_flight": worker["prompt_in_flight"],
+            "last_event": worker["events"][-1] if worker["events"] else None,
+            "updated_at": worker["updated_at"],
+            "seconds_since_update": max(0, int(time.time()) - worker["updated_at"]),
+        }
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix="worker-state-",
+            suffix=".tmp",
+            delete=False,
+        ) as out:
+            temporary = Path(out.name)
+            json.dump(snapshot, out, ensure_ascii=False)
+        temporary.replace(path)
+    except (OSError, ValueError):
+        pass
+    finally:
+        if temporary is not None:
+            with suppress(OSError):
+                temporary.unlink(missing_ok=True)
+
+
+def prompt_preview(prompt):
+    trimmed = prompt.strip()
+    return trimmed if len(trimmed) <= 48 else trimmed[:48].rstrip() + "…"
+
+
+def ascii_lower(value):
+    return value.translate(
+        str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")
+    )
+
+
+def observed_cwd(screen):
+    for line in screen.splitlines():
+        tokens = line.split()
+        index = next((i for i, t in enumerate(tokens) if t in {"$", "%", "#", ">", "›", "❯"}), 0)
+        if index:
+            candidate = tokens[index - 1]
+            if candidate.startswith(("/", "~", ".")) or "/" in candidate:
+                return candidate
+    return None
+
+
+def misdelivery(worker, screen, lower):
+    prompt = worker.get("last_prompt")
+    if not prompt or not worker.get("prompt_in_flight"):
+        return None
+    snippet = next((ascii_lower(line.strip()) for line in prompt.splitlines() if line.strip()), "")
+    if not snippet:
+        return None
+    visible = snippet in lower
+    echo = next(
+        (
+            line.lstrip()[1:].strip()
+            for line in screen.splitlines()
+            if line.lstrip().startswith("›") and line.lstrip()[1:].strip()
+        ),
+        None,
+    )
+    receipt, cwd = worker.get("expected_receipt"), observed_cwd(screen)
+    target = None
+    if receipt:
+        tokens = [
+            receipt.get(k, "") for k in ("repo", "task_kind", "source_surface", "objective_preview")
+        ]
+        tokens.extend(receipt.get("expected_artifacts", []))
+        if (visible or (echo and snippet not in ascii_lower(echo))) and not all(
+            ascii_lower(token) in lower for token in tokens
+        ):
+            target = "wrong_task"
+    if not target and cwd and visible:
+        expected = str(Path(worker["cwd"]).resolve())
+        if not (
+            expected.endswith(cwd)
+            or cwd.endswith(expected)
+            or Path(expected).name == Path(cwd).name
+        ):
+            target = "wrong_target"
+    if (
+        not target
+        and visible
+        and any(
+            s in lower
+            for s in (
+                "command not found",
+                "syntax error near unexpected token",
+                "parse error near",
+                "no such file or directory",
+                "unknown command",
+            )
+        )
+    ):
+        target, cwd = "shell", None
+    if target:
+        return {
+            "type": "prompt_delivery",
+            "observed_target": target,
+            "observed_cwd": cwd,
+            "observed_prompt_preview": echo,
+            "task_receipt": receipt,
+            "prompt_preview": prompt_preview(prompt),
+            "recovery_armed": False,
+        }
+    return None
 
 
 def create(key, cwd, trusted_roots=(), auto_recover=True):
@@ -52,18 +180,15 @@ def failure(worker, kind, message):
 
 
 def observe(worker, screen):
-    lower = screen.lower()
+    lower = ascii_lower(screen)
     gate = permission_prompt(screen)
-    if gate or any(
-        s in lower
-        for s in ("allow this tool", "tool permission", "allow tool", "do you want to proceed")
-    ):
+    if gate:
         failure(worker, "tool_permission_gate", "tool permission prompt detected")
         return event(
             worker,
             "tool_permission_required",
             "tool_permission_required",
-            payload=gate or {"prompt_preview": screen[:400], "allow_scope": "unknown"},
+            payload={"type": "tool_permission_prompt", "prompt_age_seconds": 0, **gate},
         )
     if not worker["trust_gate_cleared"] and any(
         s in lower
@@ -76,7 +201,12 @@ def observe(worker, screen):
         )
     ):
         failure(worker, "trust_gate", "worker boot blocked on trust prompt")
-        event(worker, "trust_required", "trust_required")
+        event(
+            worker,
+            "trust_required",
+            "trust_required",
+            payload={"type": "trust_prompt", "cwd": worker["cwd"]},
+        )
         if worker.get("trust_policy") == "deny":
             failure(worker, "trust_gate", "cwd matches denied trust root")
             return event(worker, "trust_denied", "failed")
@@ -87,52 +217,26 @@ def observe(worker, screen):
             worker,
             "trust_resolved",
             "spawning",
-            payload={"resolution": "auto_allowlisted", "cwd": worker["cwd"]},
+            payload={
+                "type": "trust_prompt",
+                "resolution": "auto_allowlisted",
+                "cwd": worker["cwd"],
+            },
         )
-    prompt = worker.get("last_prompt")
-    if prompt and worker.get("prompt_in_flight"):
-        snippet = next((line.strip().lower() for line in prompt.splitlines() if line.strip()), "")
-        visible = bool(snippet and snippet in lower)
-        receipt = worker.get("expected_receipt")
-        target = None
-        if (
-            receipt
-            and visible
-            and not all(
-                str(receipt.get(k, "")).lower() in lower
-                for k in ("repo", "task_kind", "source_surface", "objective_preview")
-            )
-        ):
-            target = "wrong_task"
-        elif visible and any(
-            s in lower
-            for s in (
-                "command not found",
-                "syntax error near unexpected token",
-                "parse error near",
-                "no such file or directory",
-                "unknown command",
-            )
-        ):
-            target = "shell"
-        if target:
-            worker["prompt_in_flight"] = False
-            failure(worker, "prompt_delivery", "worker prompt landed in " + target)
+    delivery = misdelivery(worker, screen, lower)
+    if delivery:
+        worker["prompt_in_flight"] = False
+        failure(worker, "prompt_delivery", "worker prompt landed in " + delivery["observed_target"])
+        event(worker, "prompt_misdelivery", "failed", payload=delivery)
+        if worker["auto_recover_prompt_misdelivery"]:
+            worker["replay_prompt"] = worker["last_prompt"]
             event(
                 worker,
-                "prompt_misdelivery",
-                "failed",
-                payload={"observed_target": target, "prompt_preview": prompt[:48]},
+                "prompt_replay_armed",
+                "ready_for_prompt",
+                payload={**delivery, "recovery_armed": True},
             )
-            if worker["auto_recover_prompt_misdelivery"]:
-                worker["replay_prompt"] = prompt
-                event(
-                    worker,
-                    "prompt_replay_armed",
-                    "ready_for_prompt",
-                    payload={"recovery_armed": True},
-                )
-            return worker
+        return worker
     if worker.get("prompt_in_flight") and any(
         s in lower for s in ("thinking", "working", "running tests", "inspecting", "analyzing")
     ):
@@ -159,7 +263,7 @@ def observe(worker, screen):
 
 
 def permission_prompt(screen):
-    lower = screen.lower()
+    lower = ascii_lower(screen)
     if not (
         all(word in lower for word in ("allow the", "server", "tool", "run"))
         or "allow tool" in lower
@@ -170,13 +274,16 @@ def permission_prompt(screen):
         (
             line.strip()
             for line in reversed(screen.splitlines())
-            if "allow" in line.lower() and "tool" in line.lower()
+            if "allow" in ascii_lower(line)
+            and "tool" in ascii_lower(line)
+            and ("run" in ascii_lower(line) or "server" in ascii_lower(line))
         ),
         screen,
     )
-    name = re.search(r'"([^"]+)"', line) or re.search(r"tool\s+(\S+)", line, re.I)
-    server = re.search(r"the (.+?) server", line, re.I)
-    tool = name[1].strip("?.!,") if name else None
+    quoted = re.search(r'"([^"]*)"', line)
+    name = re.search(r"tool\s+(\S+)", line, re.I)
+    server = re.search(r"the (.+?) server", line)
+    tool = quoted[1] if quoted else name[1].strip("?:\"'") if name else None
     server_name = (
         server[1].removesuffix(" MCP")
         if server
@@ -206,7 +313,7 @@ def permission_prompt(screen):
         "server_name": server_name,
         "tool_name": tool,
         "allow_scope": scope,
-        "prompt_preview": line[:48],
+        "prompt_preview": prompt_preview(line),
     }
 
 
@@ -306,7 +413,11 @@ def startup_timeout(worker, pane_command, transport_healthy, mcp_healthy, now=No
         worker,
         "startup_no_evidence",
         "failed",
-        payload={"classification": classification, "evidence": evidence},
+        payload={
+            "type": "startup_no_evidence",
+            "classification": classification,
+            "evidence": evidence,
+        },
     )
 
 
@@ -320,7 +431,7 @@ def resolve_trust(worker):
         worker,
         "trust_resolved",
         "spawning",
-        payload={"resolution": "manual_approval", "cwd": worker["cwd"]},
+        payload={"type": "trust_prompt", "resolution": "manual_approval", "cwd": worker["cwd"]},
     )
 
 
@@ -339,7 +450,9 @@ def send_prompt(worker, prompt=None, receipt=None):
         replay_prompt=None,
         last_error=None,
     )
-    return event(worker, "running", "running", "prompt dispatched to worker: " + prompt[:48])
+    return event(
+        worker, "running", "running", "prompt dispatched to worker: " + prompt_preview(prompt)
+    )
 
 
 def ready_snapshot(worker):
@@ -375,3 +488,8 @@ def restart(worker):
         prompt_sent_at=None,
     )
     return event(worker, "restarted", "spawning")
+
+
+def terminate(worker):
+    worker["prompt_in_flight"] = False
+    return event(worker, "finished", "finished", "worker terminated by control plane")

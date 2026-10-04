@@ -13,6 +13,7 @@ import re
 import shutil
 import socket
 import sys
+import weakref
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
@@ -122,6 +123,7 @@ class Extensions:
         self.tools = None
         self.mcp_tool_names = {}
         self.discovery_task = None
+        self.worker_locks = weakref.WeakValueDictionary()
 
     async def start(self):
         await self.plugins.startup()
@@ -818,6 +820,15 @@ class Extensions:
         return await process(argv, cfg.workspace, timeout=20)
 
     async def worker(self, cfg, permission, name, a):
+        if name == "WorkerCreate":
+            return await self._worker(cfg, permission, name, a)
+        async with self.worker_lock(a["worker_id"]):
+            return await self._worker(cfg, permission, name, a)
+
+    def worker_lock(self, key):
+        return self.worker_locks.setdefault(key, asyncio.Lock())
+
+    async def _worker(self, cfg, permission, name, a):
         from . import worker as control
 
         if name == "WorkerCreate":
@@ -867,16 +878,28 @@ class Extensions:
             if job and job["status"] in {"queued", "running"}:
                 raise ValueError("Worker 的实际任务仍在执行")
             control.send_prompt(item, a.get("prompt"), a.get("task_receipt"))
-            warnings = await control.preflight(cfg.workspace, item["last_prompt"])
-            if warnings:
-                control.event(item, "startup_preflight", payload={"warnings": warnings})
-            task = self.jobs.agent_job(
-                item["last_prompt"],
-                min((permission, item["permission"]), key=LEVELS.get),
-                cfg,
-                "Worker",
-                session_id=item["session_id"],
-            )
+            try:
+                warnings = await control.preflight(cfg.workspace, item["last_prompt"])
+                for warning in warnings:
+                    control.event(
+                        item,
+                        "startup_preflight_warning",
+                        detail=warning["message"],
+                        payload={"type": "startup_preflight_warning", **warning},
+                    )
+                task = self.jobs.agent_job(
+                    item["last_prompt"],
+                    min((permission, item["permission"]), key=LEVELS.get),
+                    cfg,
+                    "Worker",
+                    session_id=item["session_id"],
+                )
+            except (Exception, asyncio.CancelledError):
+                item["prompt_in_flight"] = False
+                control.failure(item, "protocol", "worker task could not be started")
+                control.event(item, "failed", "failed", "worker dispatch failed")
+                self.jobs.put("worker", key, item)
+                raise
             item["job_id"] = task["id"]
         elif name in {"WorkerTerminate", "WorkerRestart"}:
             if job:
@@ -885,8 +908,7 @@ class Extensions:
             if name == "WorkerRestart":
                 control.restart(item)
             else:
-                item["prompt_in_flight"] = False
-                control.event(item, "finished", "finished", "worker terminated by control plane")
+                control.terminate(item)
         elif name == "WorkerObserveCompletion":
             if job and job["status"] in {"queued", "running"}:
                 raise ValueError("实际任务尚未结束，不能伪造完成状态")

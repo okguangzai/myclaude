@@ -415,6 +415,12 @@ async def mcp_health(request: Request):
 
 @router.post("/workers/{key}/startup-timeout")
 async def worker_startup_timeout(request: Request, key: str, body: dict):
+    extensions = request.app.state.extensions
+    async with extensions.worker_lock(key):
+        return await _worker_startup_timeout(request, key, body)
+
+
+async def _worker_startup_timeout(request: Request, key: str, body: dict):
     from .worker import startup_timeout
 
     jobs = request.app.state.extensions.jobs

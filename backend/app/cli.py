@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -22,7 +23,7 @@ from .rag import RagService
 from .tools import Tools
 from .tunnel import Tunnel
 
-VERSION = "0.5.0"
+VERSION = "0.6.0"
 LOCAL = {
     "status",
     "doctor",
@@ -51,14 +52,20 @@ LOCAL = {
 }
 
 
-def error_payload(message, kind="runtime_error"):
+def error_payload(message, kind="runtime_error", hint=None):
     if ": " in message and message.split(": ", 1)[0] in {
         "unexpected_extra_args",
         "unknown_option",
         "missing_flag_value",
         "invalid_flag_value",
+        "missing_prompt",
+        "missing_argument",
+        "invalid_permission_mode",
     }:
         kind, message = message.split(": ", 1)
+    if "\nUsage:" in message:
+        message, usage = message.split("\nUsage:", 1)
+        hint = "Usage:" + usage
     return {
         "type": "error",
         "kind": kind,
@@ -67,7 +74,7 @@ def error_payload(message, kind="runtime_error"):
         "error": message,
         "message": message,
         "action": "abort",
-        "hint": None,
+        "hint": hint,
         "exit_code": 1,
     }
 
@@ -90,8 +97,13 @@ class CliParser(argparse.ArgumentParser):
             if "unrecognized arguments" in message
             else "invalid_flag_value"
         )
+        if "invalid choice" in message and any(
+            value.split("=", 1)[0] == "--permission-mode" for value in arguments
+        ):
+            kind = "invalid_permission_mode"
+        payload = error_payload(message, kind, self.format_usage().strip())
         if output in {"json", "stream-json"}:
-            print(json.dumps(error_payload(message, kind), ensure_ascii=False))
+            print(json.dumps(payload, ensure_ascii=False))
         else:
             self.print_usage(sys.stderr)
             print(message, file=sys.stderr)
@@ -99,7 +111,7 @@ class CliParser(argparse.ArgumentParser):
 
 
 def parser():
-    p = CliParser(prog="myclaude", add_help=False)
+    p = CliParser(prog="myclaude", add_help=False, allow_abbrev=False)
     p.add_argument("words", nargs="*")
     p.add_argument("--help", "-h", action="store_true")
     p.add_argument("--version", "-v", "-V", action="store_true")
@@ -127,7 +139,7 @@ def parser():
         choices=["none", "minimal", "low", "medium", "high", "xhigh"],
     )
     p.add_argument("--base-commit")
-    p.add_argument("--allowed-tools", "--allowedTools")
+    p.add_argument("--allowed-tools", "--allowedTools", action="append")
     p.add_argument("--print", action="store_true")
     p.add_argument("--stdin", "--prompt-stdin", action="store_true")
     p.add_argument(
@@ -172,7 +184,11 @@ async def run(args):
     if args.reasoning:
         changes["reasoning_effort"] = args.reasoning
     if args.allowed_tools is not None:
-        changes["allowed_tools"] = [s.strip() for s in args.allowed_tools.split(",") if s.strip()]
+        changes["allowed_tools"] = list(
+            dict.fromkeys(
+                s.strip() for value in args.allowed_tools for s in value.split(",") if s.strip()
+            )
+        )
     store.current = type(store.current).model_validate({**store.current.model_dump(), **changes})
     db = Database(args.data_dir / "app.sqlite", recover=False)
     async with httpx.AsyncClient(timeout=httpx.Timeout(60, connect=12), trust_env=False) as client:
@@ -289,7 +305,7 @@ async def run(args):
                         }
                     else:
                         value = store.public()
-                    if rest and rest[0] not in {"inspect", "import", "env"}:
+                    if rest and rest[0] not in {"inspect", "import", "env", "show"}:
                         if rest[0] not in value:
                             raise ValueError("未知或保密的配置字段")
                         value = {rest[0]: value[rest[0]]}
@@ -455,10 +471,95 @@ async def interact(ext, agent, session_id, prompt, args):
     return 0 if final and final["status"] == "completed" else 1
 
 
+def prepare_arguments(p):
+    """Preserve literal -p input and fail locally before loading credentials/config."""
+    raw = p.raw_arguments
+    output, index = [], 0
+    value_flags = {
+        option
+        for action in p._actions
+        if action.nargs not in (0, "*")
+        for option in action.option_strings
+    }
+    while index < len(raw):
+        value = raw[index]
+        if value == "--":
+            output.extend(raw[index:])
+            break
+        flag, equal, inline = value.partition("=")
+        if flag in {"-p", "--prompt"}:
+            prompt = inline if equal else raw[index + 1] if index + 1 < len(raw) else None
+            consumed = 1 if equal else 2
+            if prompt == "--" and not equal:
+                prompt = raw[index + 2] if index + 2 < len(raw) else None
+                consumed = 3
+            elif prompt and prompt.startswith("-") and not equal:
+                prompt = None
+            if not prompt or not prompt.strip():
+                p.error(
+                    "missing_prompt: prompt text is required.\nUsage: myclaude -p <text> or -p -- <literal>"
+                )
+            output.append("--prompt=" + prompt)
+            index += consumed
+            continue
+        next_value = inline if equal else raw[index + 1] if index + 1 < len(raw) else None
+        if flag in {"--allowed-tools", "--allowedTools"} and (
+            not next_value
+            or not next_value.strip()
+            or next_value.startswith("-")
+            or (not equal and next_value in LOCAL)
+        ):
+            p.error(
+                "missing_argument: allowed tools are required.\nUsage: --allowedTools read_file,search_files"
+            )
+        if flag in {"--manifests-dir", "--output"} and equal and not inline:
+            p.error(
+                "missing_flag_value: path is required.\nUsage: myclaude dump-manifests --manifests-dir PATH; myclaude export --output PATH"
+            )
+        if (
+            flag == "--base-commit"
+            and next_value is not None
+            and not re.fullmatch(r"[0-9a-fA-F]{7,64}", next_value)
+        ):
+            p.error(
+                "invalid_flag_value: base commit must be a 7–64 digit hex SHA.\nUsage: --base-commit <git-sha>"
+            )
+        output.append(value)
+        index += 1
+        if (
+            flag in value_flags
+            and not equal
+            and next_value is not None
+            and not next_value.startswith("-")
+        ):
+            output.append(next_value)
+            index += 1
+    return output
+
+
+def validate_operands(p, args):
+    words = args.words
+    if not words or args.prompt:
+        return
+    command, rest = words[0], words[1:]
+    usage = None
+    if command == "export" and (len(rest) > 1 or rest and args.output):
+        usage = "export [PATH] [--session SESSION] [--output PATH]"
+    elif (
+        command == "config" and rest and len(rest) > (2 if rest[0] in {"inspect", "import"} else 1)
+    ):
+        usage = "config show|env|FIELD|inspect [PATH]|import [PATH]"
+    elif command in {"agents", "skills"} and rest and rest[0] == "show" and len(rest) > 2:
+        usage = command + " show NAME"
+    if usage:
+        p.error("unexpected_extra_args: extra positional arguments.\nUsage: myclaude " + usage)
+
+
 def main(argv=None):
     p = parser()
     p.raw_arguments = list(sys.argv[1:] if argv is None else argv)
-    args = p.parse_intermixed_args(argv)
+    args = p.parse_intermixed_args(prepare_arguments(p))
+    validate_operands(p, args)
     if args.output_format not in {"text", "json", "stream-json"}:
         p.error("CLAW_OUTPUT_FORMAT must be text, json or stream-json")
     if args.words and args.words[0] == "system-prompt":

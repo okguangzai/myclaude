@@ -1,5 +1,6 @@
 import io
 import json
+from pathlib import Path
 
 import pytest
 from app import cli
@@ -72,3 +73,58 @@ def test_cli_machine_readable_argument_errors(arguments, kind, capsys):
     value = json.loads(capsys.readouterr().out)
     assert value["error_kind"] == kind
     assert value["action"] == "abort" and value["exit_code"] == 1
+
+
+CLI_FIXTURE = json.loads(
+    (Path(__file__).parent / "fixtures/cli_errors_upstream.json").read_text(encoding="utf-8")
+)
+
+
+@pytest.mark.parametrize("case", CLI_FIXTURE["cases"], ids=lambda c: " ".join(c["arguments"]))
+def test_cli_original_error_contract(case, capsys):
+    with pytest.raises(SystemExit) as raised:
+        cli.main(["--output-format", "json", *case["arguments"]])
+    value = json.loads(capsys.readouterr().out)
+    result = {
+        "exit_code": raised.value.code,
+        "status": value["status"],
+        "error_kind": value["error_kind"],
+        "has_hint": bool(value["hint"]),
+    }
+    expected = case["expected"]
+    if case["arguments"] == ["--unknown-option"]:
+        # Original treats an unknown leading option as a prompt, then needs credentials.
+        # Python deliberately rejects it before any possible model invocation.
+        expected = {**expected, "error_kind": "unknown_option"}
+    assert result == expected
+
+
+def test_cli_literal_prompt_repeated_tools_and_no_abbreviation(tmp_path, monkeypatch):
+    (tmp_path / "workspace").mkdir()
+    monkeypatch.setattr(cli, "ROOT", tmp_path)
+    seen = []
+
+    async def capture(ext, agent, session_id, prompt, args):
+        seen.append((prompt, ext.store.current.allowed_tools))
+        return 0
+
+    monkeypatch.setattr(cli, "interact", capture)
+    assert (
+        cli.main(
+            [
+                "--data-dir",
+                str(tmp_path / "data"),
+                "-p",
+                "--",
+                "--literal prompt",
+                "--allowedTools",
+                "read_file",
+                "--allowed-tools",
+                "search_files,read_file",
+            ]
+        )
+        == 0
+    )
+    assert seen == [("--literal prompt", ["read_file", "search_files"])]
+    with pytest.raises(SystemExit):
+        cli.main(["--vers"])

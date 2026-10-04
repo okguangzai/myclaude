@@ -57,7 +57,7 @@ for name in ("GitStatus", "GitDiff", "GitLog", "GitShow", "GitBlame"):
 for spec in CATALOG["tools"]:
     if spec["name"].startswith("Worker"):
         notes[spec["name"]] = (
-            "持久会话 Worker；原状态名、信任、观察文本、误投与重放、完成分类；详细启动证据仍不完整"
+            "持久会话 Worker；79 组原 Rust 状态/类型事件对照通过，含错目录/错任务/产物回执/重放/超时；文件观察接口、并发互斥和实际取消已验证；不等于完整 TUI 传输迁移"
         )
 
 lines = [
