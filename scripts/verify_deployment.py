@@ -6,6 +6,7 @@ Credentials JSON is private and must never be committed. No secrets are printed.
 import argparse
 import json
 import re
+import secrets
 from pathlib import Path
 
 import httpx
@@ -50,23 +51,34 @@ def verify(access, live=False, previous=None):
         if live:
             report["qdrant"] = request("POST", "api/connections/qdrant").json()
             report["embedding"] = request("POST", "api/connections/embedding").json()
-            document = "MyClaude 0.5 通过 main 自动发布，访问域名为 myclaude.csghome.fun，知识库使用 Qdrant。"
+            version = report["health"]["version"]
+            marker = secrets.token_hex(8)
+            document = f"验收记录 {marker}：MyClaude {version} 通过 main 自动发布，访问域名为 myclaude.csghome.fun，知识库使用 Qdrant。"
             report["document"] = request(
                 "POST",
                 "api/documents",
-                files={"file": ("deployment-v05-check.md", document.encode(), "text/markdown")},
+                files={
+                    "file": (
+                        f"deployment-{version}-{marker}.md",
+                        document.encode(),
+                        "text/markdown",
+                    )
+                },
             ).json()
             report["retrieval"] = request(
                 "POST",
                 "api/retrieve",
-                json={"query": "MyClaude 0.5 的访问域名是什么？", "top_k": 2},
+                # The exact unique document distinguishes this run from prior identical fixtures.
+                json={"query": document, "top_k": 2},
             ).json()
             assert report["retrieval"]["backend"] == "qdrant"
             assert any(
                 hit["document_id"] == report["document"]["id"]
                 for hit in report["retrieval"]["hits"]
             )
-            session = request("POST", "api/sessions", json={"title": "独立域名 0.5 验收"}).json()
+            session = request(
+                "POST", "api/sessions", json={"title": f"独立域名 {version} 验收"}
+            ).json()
             events = []
             with client.stream(
                 "POST",
