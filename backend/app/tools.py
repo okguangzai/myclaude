@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 
 from .config import Settings
+from .tool_contracts import patch
 
 DENIED = {
     ".git",
@@ -106,7 +107,7 @@ class Tools:
         if extensions:
             extensions.tools = self
 
-    def definitions(self, permission, rag):
+    def definitions(self, permission, rag, cfg=None):
         if not self.extensions:
             return definitions(permission, rag)
         specs = self.extensions.definitions(permission)
@@ -122,7 +123,7 @@ class Tools:
         return [
             s
             for s in combined
-            if tool_allowed(self.extensions.store.current, s["function"]["name"])
+            if tool_allowed(cfg or self.extensions.store.current, s["function"]["name"])
         ]
 
     async def execute(self, cfg: Settings, permission: str, name: str, args: dict):
@@ -191,6 +192,11 @@ class Tools:
             content = args["content"]
             if not isinstance(content, str) or len(content.encode("utf-8")) > 256000:
                 raise ValueError("写入内容必须为文本且不超过 256 KB")
+            original = None
+            if path.exists():
+                if path.stat().st_size > 256000:
+                    raise ValueError("原文件超过 256 KB，不能生成完整修改记录")
+                original = path.read_text(encoding="utf-8")
             path.parent.mkdir(parents=True, exist_ok=True)
             safe_path(cfg.workspace, args["path"])
             handle, temp = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
@@ -202,6 +208,11 @@ class Tools:
                 if os.path.exists(temp):
                     os.unlink(temp)
             return {
+                "type": "update" if original is not None else "create",
+                "content": content,
+                "originalFile": original,
+                "structuredPatch": patch(original or "", content),
+                "gitDiff": None,
                 "path": args["path"],
                 "bytes": len(content.encode("utf-8")),
                 "written": True,

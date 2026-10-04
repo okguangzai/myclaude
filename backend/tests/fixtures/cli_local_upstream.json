@@ -1,0 +1,772 @@
+{
+  "baseline": "08106b0c3771ef5b4a5aa176acccd460e88b7325",
+  "cases": [
+    {
+      "scenario": "empty",
+      "arguments": [
+        "init"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "init",
+            "action": "init",
+            "status": "ok",
+            "already_initialized": false,
+            "created": [
+              ".claw/",
+              ".claw/settings.json",
+              ".claw.json",
+              ".gitignore",
+              "CLAUDE.md"
+            ],
+            "updated": [],
+            "skipped": [],
+            "partial": [],
+            "deferred": [
+              ".claw/sessions/"
+            ],
+            "artifacts": [
+              {
+                "name": ".claw/",
+                "status": "created"
+              },
+              {
+                "name": ".claw/settings.json",
+                "status": "created"
+              },
+              {
+                "name": ".claw/sessions/",
+                "status": "deferred"
+              },
+              {
+                "name": ".claw.json",
+                "status": "created"
+              },
+              {
+                "name": ".gitignore",
+                "status": "created"
+              },
+              {
+                "name": "CLAUDE.md",
+                "status": "created"
+              }
+            ]
+          }
+        },
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "init",
+            "action": "init",
+            "status": "ok",
+            "already_initialized": true,
+            "created": [],
+            "updated": [],
+            "skipped": [
+              ".claw/",
+              ".claw/settings.json",
+              ".claw.json",
+              ".gitignore",
+              "CLAUDE.md"
+            ],
+            "partial": [],
+            "deferred": [
+              ".claw/sessions/"
+            ],
+            "artifacts": [
+              {
+                "name": ".claw/",
+                "status": "skipped"
+              },
+              {
+                "name": ".claw/settings.json",
+                "status": "skipped"
+              },
+              {
+                "name": ".claw/sessions/",
+                "status": "deferred"
+              },
+              {
+                "name": ".claw.json",
+                "status": "skipped"
+              },
+              {
+                "name": ".gitignore",
+                "status": "skipped"
+              },
+              {
+                "name": "CLAUDE.md",
+                "status": "skipped"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "partial",
+      "arguments": [
+        "init"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "init",
+            "action": "init",
+            "status": "ok",
+            "already_initialized": false,
+            "created": [
+              ".claw/settings.json",
+              ".claw.json",
+              ".gitignore",
+              "CLAUDE.md"
+            ],
+            "updated": [],
+            "skipped": [],
+            "partial": [
+              ".claw/"
+            ],
+            "deferred": [
+              ".claw/sessions/"
+            ],
+            "artifacts": [
+              {
+                "name": ".claw/",
+                "status": "partial"
+              },
+              {
+                "name": ".claw/settings.json",
+                "status": "created"
+              },
+              {
+                "name": ".claw/sessions/",
+                "status": "deferred"
+              },
+              {
+                "name": ".claw.json",
+                "status": "created"
+              },
+              {
+                "name": ".gitignore",
+                "status": "created"
+              },
+              {
+                "name": "CLAUDE.md",
+                "status": "created"
+              }
+            ]
+          }
+        },
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "init",
+            "action": "init",
+            "status": "ok",
+            "already_initialized": true,
+            "created": [],
+            "updated": [],
+            "skipped": [
+              ".claw/",
+              ".claw/settings.json",
+              ".claw.json",
+              ".gitignore",
+              "CLAUDE.md"
+            ],
+            "partial": [],
+            "deferred": [
+              ".claw/sessions/"
+            ],
+            "artifacts": [
+              {
+                "name": ".claw/",
+                "status": "skipped"
+              },
+              {
+                "name": ".claw/settings.json",
+                "status": "skipped"
+              },
+              {
+                "name": ".claw/sessions/",
+                "status": "deferred"
+              },
+              {
+                "name": ".claw.json",
+                "status": "skipped"
+              },
+              {
+                "name": ".gitignore",
+                "status": "skipped"
+              },
+              {
+                "name": "CLAUDE.md",
+                "status": "skipped"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "existing",
+      "arguments": [
+        "init"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "init",
+            "action": "init",
+            "status": "ok",
+            "already_initialized": false,
+            "created": [
+              ".claw.json",
+              ".gitignore"
+            ],
+            "updated": [],
+            "skipped": [
+              ".claw/",
+              ".claw/settings.json",
+              "CLAUDE.md"
+            ],
+            "partial": [],
+            "deferred": [
+              ".claw/sessions/"
+            ],
+            "artifacts": [
+              {
+                "name": ".claw/",
+                "status": "skipped"
+              },
+              {
+                "name": ".claw/settings.json",
+                "status": "skipped"
+              },
+              {
+                "name": ".claw/sessions/",
+                "status": "deferred"
+              },
+              {
+                "name": ".claw.json",
+                "status": "created"
+              },
+              {
+                "name": ".gitignore",
+                "status": "created"
+              },
+              {
+                "name": "CLAUDE.md",
+                "status": "skipped"
+              }
+            ]
+          }
+        },
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "init",
+            "action": "init",
+            "status": "ok",
+            "already_initialized": true,
+            "created": [],
+            "updated": [],
+            "skipped": [
+              ".claw/",
+              ".claw/settings.json",
+              ".claw.json",
+              ".gitignore",
+              "CLAUDE.md"
+            ],
+            "partial": [],
+            "deferred": [
+              ".claw/sessions/"
+            ],
+            "artifacts": [
+              {
+                "name": ".claw/",
+                "status": "skipped"
+              },
+              {
+                "name": ".claw/settings.json",
+                "status": "skipped"
+              },
+              {
+                "name": ".claw/sessions/",
+                "status": "deferred"
+              },
+              {
+                "name": ".claw.json",
+                "status": "skipped"
+              },
+              {
+                "name": ".gitignore",
+                "status": "skipped"
+              },
+              {
+                "name": "CLAUDE.md",
+                "status": "skipped"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "ignore_rules",
+      "arguments": [
+        "init"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "init",
+            "action": "init",
+            "status": "ok",
+            "already_initialized": false,
+            "created": [
+              ".claw/settings.json",
+              ".claw.json",
+              "CLAUDE.md"
+            ],
+            "updated": [
+              ".gitignore"
+            ],
+            "skipped": [],
+            "partial": [
+              ".claw/"
+            ],
+            "deferred": [
+              ".claw/sessions/"
+            ],
+            "artifacts": [
+              {
+                "name": ".claw/",
+                "status": "partial"
+              },
+              {
+                "name": ".claw/settings.json",
+                "status": "created"
+              },
+              {
+                "name": ".claw/sessions/",
+                "status": "deferred"
+              },
+              {
+                "name": ".claw.json",
+                "status": "created"
+              },
+              {
+                "name": ".gitignore",
+                "status": "updated"
+              },
+              {
+                "name": "CLAUDE.md",
+                "status": "created"
+              }
+            ]
+          }
+        },
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "init",
+            "action": "init",
+            "status": "ok",
+            "already_initialized": true,
+            "created": [],
+            "updated": [],
+            "skipped": [
+              ".claw/",
+              ".claw/settings.json",
+              ".claw.json",
+              ".gitignore",
+              "CLAUDE.md"
+            ],
+            "partial": [],
+            "deferred": [
+              ".claw/sessions/"
+            ],
+            "artifacts": [
+              {
+                "name": ".claw/",
+                "status": "skipped"
+              },
+              {
+                "name": ".claw/settings.json",
+                "status": "skipped"
+              },
+              {
+                "name": ".claw/sessions/",
+                "status": "deferred"
+              },
+              {
+                "name": ".claw.json",
+                "status": "skipped"
+              },
+              {
+                "name": ".gitignore",
+                "status": "skipped"
+              },
+              {
+                "name": "CLAUDE.md",
+                "status": "skipped"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "models",
+      "arguments": [
+        "models"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "models",
+            "action": "list",
+            "status": "ok",
+            "configured_model": "sonnet",
+            "resolved_configured_model": "anthropic/claude-sonnet-4-6",
+            "local_only": true,
+            "requires_credentials": false,
+            "requires_provider_request": false
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "no_git",
+      "arguments": [
+        "diff"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "diff",
+            "action": "diff",
+            "status": "error",
+            "result": "no_git_repo",
+            "changed_file_count": null,
+            "has_staged": false,
+            "has_unstaged": false
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "clean",
+      "arguments": [
+        "diff"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "diff",
+            "action": "diff",
+            "status": "ok",
+            "result": "clean",
+            "changed_file_count": 0,
+            "has_staged": false,
+            "has_unstaged": false
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "staged",
+      "arguments": [
+        "diff"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "diff",
+            "action": "diff",
+            "status": "ok",
+            "result": "changes",
+            "changed_file_count": 1,
+            "has_staged": true,
+            "has_unstaged": false
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "unstaged",
+      "arguments": [
+        "diff"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "diff",
+            "action": "diff",
+            "status": "ok",
+            "result": "changes",
+            "changed_file_count": 1,
+            "has_staged": false,
+            "has_unstaged": true
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "both",
+      "arguments": [
+        "diff"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "diff",
+            "action": "diff",
+            "status": "ok",
+            "result": "changes",
+            "changed_file_count": 1,
+            "has_staged": true,
+            "has_unstaged": true
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "definitions",
+      "arguments": [
+        "agents",
+        "list"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "agents",
+            "action": "list",
+            "status": "degraded",
+            "names": [
+              "alpha",
+              "beta"
+            ],
+            "error_kind": null,
+            "invalid_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "definitions",
+      "arguments": [
+        "agents",
+        "list",
+        "ALP"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "agents",
+            "action": "list",
+            "status": "degraded",
+            "names": [
+              "alpha"
+            ],
+            "error_kind": null,
+            "invalid_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "definitions",
+      "arguments": [
+        "agents",
+        "show",
+        "alpha"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "agents",
+            "action": "show",
+            "status": "degraded",
+            "names": [
+              "alpha"
+            ],
+            "error_kind": null,
+            "invalid_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "definitions",
+      "arguments": [
+        "agents",
+        "info",
+        "beta"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "agents",
+            "action": "show",
+            "status": "degraded",
+            "names": [
+              "beta"
+            ],
+            "error_kind": null,
+            "invalid_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "definitions",
+      "arguments": [
+        "agents",
+        "show",
+        "missing"
+      ],
+      "expected": [
+        {
+          "exit_code": 1,
+          "value": {
+            "kind": "agents",
+            "action": "show",
+            "status": "error",
+            "names": [],
+            "error_kind": "agent_not_found",
+            "invalid_count": 0
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "definitions",
+      "arguments": [
+        "skills",
+        "list"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "skills",
+            "action": "list",
+            "status": "ok",
+            "names": [
+              "alpha",
+              "beta"
+            ],
+            "error_kind": null,
+            "invalid_count": 0
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "definitions",
+      "arguments": [
+        "skills",
+        "list",
+        "ALP"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "skills",
+            "action": "list",
+            "status": "ok",
+            "names": [
+              "alpha"
+            ],
+            "error_kind": null,
+            "invalid_count": 0
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "definitions",
+      "arguments": [
+        "skills",
+        "show",
+        "alpha"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "skills",
+            "action": "show",
+            "status": "ok",
+            "names": [
+              "alpha"
+            ],
+            "error_kind": null,
+            "invalid_count": 0
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "definitions",
+      "arguments": [
+        "skills",
+        "info",
+        "beta"
+      ],
+      "expected": [
+        {
+          "exit_code": 0,
+          "value": {
+            "kind": "skills",
+            "action": "show",
+            "status": "ok",
+            "names": [
+              "beta"
+            ],
+            "error_kind": null,
+            "invalid_count": 0
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "definitions",
+      "arguments": [
+        "skills",
+        "show",
+        "missing"
+      ],
+      "expected": [
+        {
+          "exit_code": 1,
+          "value": {
+            "kind": "skills",
+            "action": "show",
+            "status": "error",
+            "names": [],
+            "error_kind": "skill_not_found",
+            "invalid_count": 0
+          }
+        }
+      ]
+    }
+  ]
+}

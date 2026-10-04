@@ -24,6 +24,9 @@ LANGUAGES = {
     ".h": "c",
     ".cpp": "cpp",
     ".cc": "cpp",
+    ".hpp": "cpp",
+    ".rb": "ruby",
+    ".lua": "lua",
     ".vue": "vue",
 }
 

@@ -300,7 +300,13 @@ class Jobs:
     def cron(self, schedule, prompt, permission, description=""):
         if len(schedule.split()) != 5 or not croniter.is_valid(schedule):
             raise ValueError("使用五字段 cron 表达式，时区 UTC，最小间隔一分钟")
+        key = uid()
         value = {
+            "cron_id": key,
+            "created_at": now(),
+            "updated_at": now(),
+            "run_count": 0,
+            "last_run_at": None,
             "schedule": schedule,
             "prompt": prompt,
             "permission": permission,
@@ -309,26 +315,32 @@ class Jobs:
             "next_run": croniter(schedule, datetime.now(timezone.utc)).get_next(float),
             "last_job": None,
         }
-        return self.put("cron", uid(), value)
+        return self.put("cron", key, value)
+
+    def tick_once(self, timestamp=None):
+        timestamp = datetime.now(timezone.utc).timestamp() if timestamp is None else timestamp
+        for item in self.records("cron"):
+            if not item["enabled"] or item["next_run"] > timestamp:
+                continue
+            key = item.pop("id")
+            item["next_run"] = croniter(item["schedule"], timestamp).get_next(float)
+            if item.get("last_job") not in self.running:
+                job = self.agent_job(
+                    item["prompt"],
+                    item["permission"],
+                    self.store.current,
+                    item["description"] or "Scheduled Agent",
+                )
+                item["last_job"] = job["id"]
+                item["run_count"] = item.get("run_count", 0) + 1
+                item["last_run_at"] = datetime.fromtimestamp(timestamp, timezone.utc).isoformat()
+            item["updated_at"] = now()
+            self.put("cron", key, item)
 
     async def tick(self):
         while True:
             try:
-                for item in self.records("cron"):
-                    timestamp = datetime.now(timezone.utc).timestamp()
-                    if not item["enabled"] or item["next_run"] > timestamp:
-                        continue
-                    key = item.pop("id")
-                    item["next_run"] = croniter(item["schedule"], timestamp).get_next(float)
-                    if item.get("last_job") not in self.running:
-                        job = self.agent_job(
-                            item["prompt"],
-                            item["permission"],
-                            self.store.current,
-                            item["description"] or "Scheduled Agent",
-                        )
-                        item["last_job"] = job["id"]
-                    self.put("cron", key, item)
+                self.tick_once()
             except Exception as exc:
                 self.put("scheduler", "error", {"error": self.store.redact(str(exc)), "at": now()})
             await asyncio.sleep(5)

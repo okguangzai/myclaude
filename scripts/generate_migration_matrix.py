@@ -12,23 +12,23 @@ from app.extensions import CATALOG  # noqa: E402
 notes = {
     "bash": "真实 Bash 进程；Windows 优先 Git Bash；Linux 可探测 namespace/network，文件系统隔离请求拒绝",
     "PowerShell": "真实本机 PowerShell；支持后台任务、超时与取消",
-    "REPL": "Python/JavaScript 独立进程，不保留跨调用变量",
+    "REPL": "Python/JavaScript/Bash 独立进程，不保留跨调用变量；exitCode 与 durationMs",
     "read_file": "工作区 UTF-8、offset/limit；256 KB 文件、60000 字符结果上限",
     "write_file": "原子替换工作区文件；256 KB 写入上限",
     "edit_file": "唯一匹配或 replace_all；拒绝空 old_string",
-    "glob_search": "最多扫描 5000 文件、返回 300 项；标准 glob 匹配",
+    "glob_search": "最多扫描 5000 文件、返回 300 项；含花括号展开与原 filenames/numFiles 字段",
     "grep_search": "regex 超时保护、类型/glob/上下文/输出模式；最多 300 项",
     "WebFetch": "HTTP(S) 公网内容提取；1 MB 上限；不自动跟随重定向",
     "WebSearch": "公共搜索 HTML 适配，返回链接并执行域名过滤；失败明确报错",
     "RemoteTrigger": "真实 HTTP 请求；仅公网；校验并固定 DNS 地址",
-    "TodoWrite": "按会话保存 Todo 状态",
+    "TodoWrite": "按会话保存 Todo；oldTodos/newTodos，全完成时清空及验证提醒",
     "Skill": "读取用户/工作区分层技能，YAML frontmatter、辅助文件安装与参数",
-    "Agent": "独立子会话，等待真实结果，继承权限和树预算",
-    "ToolSearch": "按查询词检索当前授权的工具 schema",
+    "Agent": "独立子会话，等待真实结果，继承权限和树预算；按子类型限制工具并采用 subagentModel",
+    "ToolSearch": "select: 名称选择、+必选词、原版评分排序；仅返回当前授权 schema",
     "NotebookEdit": "按 cell id 插入/替换/删除，代码 cell 清空旧输出",
     "Sleep": "可取消等待，单次最多 60 秒",
     "SendUserMessage": "保存本地通知；附件必须是工作区路径，不对外发送消息",
-    "Config": "只修改本轮 temperature/max_tokens/max_turns/context_chars；不访问密钥",
+    "Config": "原偏好字段、model、permissions.defaultMode 持久化；4 个 Python 运行参数只作用本轮；不访问密钥、不提升本轮授权",
     "EnterPlanMode": "本轮有效权限收窄为只读",
     "ExitPlanMode": "仅恢复本轮原先授予的权限",
     "StructuredOutput": "保存 JSON 对象；原 schema 允许任意对象，无额外业务 schema",
@@ -43,9 +43,9 @@ notes = {
     "TeamCreate": "1–4 个任务并行；共享工作区，独立会话",
     "TeamDelete": "取消团队任务并移除团队记录，保留任务历史",
     "CronCreate": "持久化 UTC 五字段 cron；服务运行期间触发",
-    "CronList": "读取定时计划、下次时间和上次 job_id",
+    "CronList": "读取定时计划、执行次数、创建/更新时间、上次执行时间和 job_id",
     "CronDelete": "删除后续调度，不隐式取消已发出的独立任务",
-    "LSP": "真实 Python/pylsp；另可配置语言服务器；symbols/references/diagnostics/definition/hover/completion/formatting",
+    "LSP": "真实 Python/pylsp；可配置其它语言服务器；七类操作；无 path 时返回当前工作区缓存诊断（附观察时间）",
     "ListMcpResources": "查询已启用且授权的 MCP 服务资源列表",
     "ReadMcpResource": "真实 MCP resources/read",
     "McpAuth": "连接和环境凭据状态；没有 OAuth 浏览器授权向导",
@@ -65,7 +65,7 @@ lines = [
     "",
     f"上游基线：`{CATALOG['revision']}`。由 `scripts/generate_migration_matrix.py` 生成。",
     "",
-    "55 个工具都有执行分派，但不表示全部参数或行为等价。冻结 catalog 保留原名称和 schema；运行时 RunTaskPacket 扩展了原 runtime 支持但 manifest 未列出的字段。全量迁移尚未完成，见《全量迁移进度》。",
+    "0.7 已补齐本次源码审计发现的功能缺口；55 个工具均有 Python 执行路径。冻结 catalog 保留原定义；运行时补充原 schema 遗漏的字段。接口和预算的有意适配、原版占位项及验收证据见《迁移收口清单》；不宣称字节级等价。",
     "",
     "## 工具",
     "",
@@ -91,9 +91,11 @@ for spec in CATALOG["commands"]:
     state = (
         "未实现（原有占位）"
         if name in UNSUPPORTED
-        else "Agent 工作流 · 等价待核验"
+        else "Agent 提示工作流"
         if name in PROMPTS
-        else "可用 · 等价待核验"
+        else "Python/Vue 适配"
+        if spec["implemented"]
+        else "Python 扩展"
     )
     summary = spec["summary"].replace("|", "/").replace("\n", " ")
     alias = " / " + ", ".join(spec["aliases"]) if spec["aliases"] else ""

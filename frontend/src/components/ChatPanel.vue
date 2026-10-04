@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   ChevronRight,
   LoaderCircle,
+  Trash2,
 } from "lucide-vue-next";
 import { api, json, streamChat } from "../api";
 import Markdown from "./Markdown.vue";
@@ -98,6 +99,17 @@ const sessions = ref<any[]>([]),
 let controller: AbortController | null = null;
 async function refresh() {
   sessions.value = await api("/sessions");
+}
+async function removeSession(id: string) {
+  if (busy.value || !window.confirm("删除这段对话？系统会保留可恢复副本和运行记录。")) return;
+  try {
+    await api("/sessions/" + id, { method: "DELETE" });
+    if (selected.value === id) newChat();
+    await refresh();
+    emit("changed");
+  } catch (e: any) {
+    error.value = e.message;
+  }
 }
 async function select(id: string) {
   if (busy.value) return;
@@ -218,17 +230,17 @@ onBeforeUnmount(() => {
         <Plus :size="16" /> 新建对话
       </button>
       <div class="eyebrow session-label">对话历史 · {{ sessions.length }}</div>
-      <button
+      <div
         v-for="s in sessions"
         :key="s.id"
-        class="session-item"
-        :class="{ chosen: selected === s.id }"
-        :disabled="busy"
-        @click="select(s.id)"
+        style="display: flex; align-items: center"
       >
+        <button class="session-item" style="flex: 1; min-width: 0" :class="{ chosen: selected === s.id }" :disabled="busy" @click="select(s.id)">
         <span>{{ s.title }}</span
         ><ChevronRight :size="14" />
-      </button>
+        </button>
+        <button class="btn" :disabled="busy" :aria-label="'删除对话：' + s.title" @click="removeSession(s.id)"><Trash2 :size="14" /></button>
+      </div>
       <p v-if="!sessions.length" class="muted small">
         你的第一段对话，<br />从这里开始。
       </p>

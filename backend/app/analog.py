@@ -140,7 +140,7 @@ class NarrowTools(Tools):
         super().__init__(None, ext)
         self.options, self.client = options, client
 
-    def definitions(self, permission, rag):
+    def definitions(self, permission, rag, cfg=None):
         string = {"type": "string"}
         specs = [
             definition("read_file", "Read UTF-8 file in workspace", {"path": string}, ["path"]),
@@ -210,7 +210,7 @@ class NarrowTools(Tools):
             specs = [
                 spec
                 for spec in specs
-                if tool_allowed(self.extensions.store.current, spec["function"]["name"])
+                if tool_allowed(cfg or self.extensions.store.current, spec["function"]["name"])
             ]
         return specs
 

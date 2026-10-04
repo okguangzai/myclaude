@@ -37,6 +37,8 @@ class Settings(BaseModel):
     model_config = ConfigDict(extra="forbid")
     provider: Literal["openai", "anthropic"] = "openai"
     model: str = "qwen-flash"
+    subagent_model: str | None = None
+    upstream_preferences: dict = Field(default_factory=dict)
     base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     api_key: str = ""
     auth_mode: Literal["api-key", "oauth"] = "api-key"
@@ -186,6 +188,11 @@ class Settings(BaseModel):
         if not value.strip() or len(value) > 180:
             raise ValueError("模型 ID 不能为空或过长")
         return value.strip()
+
+    @field_validator("subagent_model")
+    @classmethod
+    def subagent_model_name(cls, value: str | None) -> str | None:
+        return cls.model_name(value) if value is not None else None
 
     @field_validator("workspace")
     @classmethod

@@ -279,6 +279,43 @@ class Sessions:
             raise ValueError("会话不存在：" + reference)
         return session
 
+    def exists(self, reference):
+        try:
+            self.resolve(reference)
+            return True
+        except ValueError:
+            return False
+
+    def delete(self, reference, active_id=None):
+        session = self.resolve(reference)
+        key = session["id"]
+        if key == active_id:
+            raise ValueError("不能删除当前活动会话；请先切换会话")
+        # Keep a recoverable export before removing the managed record.
+        backup = self.store.data / "deleted-sessions" / (key + ".json")
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        with self.db.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            if connection.execute(
+                "SELECT 1 FROM runs WHERE session_id=? AND status='running'", (key,)
+            ).fetchone():
+                raise ValueError("会话正在运行，不能删除")
+            if connection.execute(
+                "SELECT 1 FROM jobs WHERE session_id=? AND status IN ('running','queued')", (key,)
+            ).fetchone():
+                raise ValueError("会话关联任务尚未结束，不能删除")
+            backup.write_text(self.export(key), encoding="utf-8")
+            connection.execute("DELETE FROM sessions WHERE id=?", (key,))
+        return {
+            "kind": "session_delete",
+            "action": "delete",
+            "status": "ok",
+            "session_id": key,
+            "deleted": True,
+            "backup": str(backup),
+            "run_history_preserved": True,
+        }
+
     def import_text(self, text, allow_workspace_mismatch=False):
         if len(text) > 10_000_000:
             raise ValueError("会话超过 10 MB")

@@ -45,6 +45,11 @@ class ScheduleRequest(TaskRequest):
 router = APIRouter(prefix="/api")
 
 
+@router.delete("/sessions/{key}")
+async def delete_session(request: Request, key: str):
+    return request.app.state.extensions.sessions.delete(key)
+
+
 @router.get("/plugins/registry")
 async def plugin_registry(request: Request):
     return request.app.state.extensions.plugins.registry()
@@ -78,12 +83,23 @@ async def runtime_evaluate(
         "branch",
         "usage",
         "lanes",
+        "completion",
         "bash",
     ],
     body: dict,
 ):
     from .orchestration import branch_collisions, evaluate_policy, green_contract
     from .task_packet import validate_packet
+
+    if kind == "completion":
+        from .orchestration import detect_lane_completion, evaluate_completed_lane
+
+        context = detect_lane_completion(body["output"], body["test_green"], body["has_pushed"])
+        return {
+            "context": context,
+            "evaluation": evaluate_completed_lane(context) if context else None,
+            "side_effects_executed": False,
+        }
 
     if kind == "bash":
         from .bash_validation import classify_command, validate_command

@@ -42,6 +42,7 @@ async function save() {
   try {
     const values = { ...form.value };
     values.fallback_primary = values.fallback_primary?.trim() || null;
+    values.subagent_model = values.subagent_model?.trim() || null;
     values.plugin_external_directories = pluginRoots.value
       .split(/\r?\n/)
       .map((s) => s.trim())
@@ -156,6 +157,11 @@ onMounted(() =>
           >模型 ID<input v-model="form.model" placeholder="qwen-flash"
         /></label>
       </div>
+      <label
+        >子 Agent 默认模型（可选）<input
+          v-model="form.subagent_model"
+          placeholder="留空继承对话模型"
+        /><small>子任务可指定模型；留空时共用当前连接和对话模型，无需额外 Key。</small></label>
       <label
         >API 基础地址<input
           v-model="form.base_url"

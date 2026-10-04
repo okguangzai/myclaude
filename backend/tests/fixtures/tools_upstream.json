@@ -1,0 +1,1301 @@
+{
+  "baseline": "08106b0c3771ef5b4a5aa176acccd460e88b7325",
+  "cases": [
+    {
+      "name": "read-0",
+      "steps": [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "one.txt"
+          }
+        }
+      ],
+      "files": {
+        "one.txt": "one\ntwo\nthree\n"
+      },
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "type": "text",
+            "file": {
+              "content": "one\ntwo\nthree",
+              "filePath": "<workspace>/one.txt",
+              "numLines": 3,
+              "startLine": 1,
+              "totalLines": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "read-1",
+      "steps": [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "one.txt",
+            "offset": 1,
+            "limit": 1
+          }
+        }
+      ],
+      "files": {
+        "one.txt": "one\ntwo\nthree\n"
+      },
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "type": "text",
+            "file": {
+              "content": "two",
+              "filePath": "<workspace>/one.txt",
+              "numLines": 1,
+              "startLine": 2,
+              "totalLines": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "read-2",
+      "steps": [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "one.txt",
+            "offset": 99
+          }
+        }
+      ],
+      "files": {
+        "one.txt": "one\ntwo\nthree\n"
+      },
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "type": "text",
+            "file": {
+              "content": "",
+              "filePath": "<workspace>/one.txt",
+              "numLines": 0,
+              "startLine": 4,
+              "totalLines": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "read-3",
+      "steps": [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "one.txt",
+            "limit": 0
+          }
+        }
+      ],
+      "files": {
+        "one.txt": "one\ntwo\nthree\n"
+      },
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "type": "text",
+            "file": {
+              "content": "",
+              "filePath": "<workspace>/one.txt",
+              "numLines": 0,
+              "startLine": 1,
+              "totalLines": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "write-edit",
+      "steps": [
+        {
+          "tool": "write_file",
+          "args": {
+            "path": "nested/file.txt",
+            "content": "one\ntwo\n"
+          }
+        },
+        {
+          "tool": "write_file",
+          "args": {
+            "path": "nested/file.txt",
+            "content": "one\ntwo\nthree\n"
+          }
+        },
+        {
+          "tool": "edit_file",
+          "args": {
+            "path": "nested/file.txt",
+            "old_string": "two",
+            "new_string": "TWO"
+          }
+        },
+        {
+          "tool": "edit_file",
+          "args": {
+            "path": "nested/file.txt",
+            "old_string": "one",
+            "new_string": "one"
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "type": "create",
+            "filePath": "<workspace>/nested/file.txt",
+            "content": "one\ntwo\n",
+            "structuredPatch": [
+              {
+                "lines": [
+                  "+one",
+                  "+two"
+                ],
+                "newLines": 2,
+                "newStart": 1,
+                "oldLines": 0,
+                "oldStart": 1
+              }
+            ],
+            "originalFile": null,
+            "gitDiff": null
+          }
+        },
+        {
+          "value": {
+            "type": "update",
+            "filePath": "<workspace>/nested/file.txt",
+            "content": "one\ntwo\nthree\n",
+            "structuredPatch": [
+              {
+                "lines": [
+                  "-one",
+                  "-two",
+                  "+one",
+                  "+two",
+                  "+three"
+                ],
+                "newLines": 3,
+                "newStart": 1,
+                "oldLines": 2,
+                "oldStart": 1
+              }
+            ],
+            "originalFile": "one\ntwo\n",
+            "gitDiff": null
+          }
+        },
+        {
+          "value": {
+            "filePath": "<workspace>/nested/file.txt",
+            "oldString": "two",
+            "newString": "TWO",
+            "originalFile": "one\ntwo\nthree\n",
+            "structuredPatch": [
+              {
+                "lines": [
+                  "-one",
+                  "-two",
+                  "-three",
+                  "+one",
+                  "+TWO",
+                  "+three"
+                ],
+                "newLines": 3,
+                "newStart": 1,
+                "oldLines": 3,
+                "oldStart": 1
+              }
+            ],
+            "userModified": false,
+            "replaceAll": false,
+            "gitDiff": null
+          }
+        },
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "edit-repeated",
+      "steps": [
+        {
+          "tool": "edit_file",
+          "args": {
+            "path": "one.txt",
+            "old_string": "a",
+            "new_string": "b",
+            "replace_all": true
+          }
+        }
+      ],
+      "files": {
+        "one.txt": "a\na\n"
+      },
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "filePath": "<workspace>/one.txt",
+            "oldString": "a",
+            "newString": "b",
+            "originalFile": "a\na\n",
+            "structuredPatch": [
+              {
+                "lines": [
+                  "-a",
+                  "-a",
+                  "+b",
+                  "+b"
+                ],
+                "newLines": 2,
+                "newStart": 1,
+                "oldLines": 2,
+                "oldStart": 1
+              }
+            ],
+            "userModified": false,
+            "replaceAll": true,
+            "gitDiff": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "notebook-last",
+      "steps": [
+        {
+          "tool": "NotebookEdit",
+          "args": {
+            "notebook_path": "book.ipynb",
+            "new_source": "print(2)"
+          }
+        }
+      ],
+      "files": {
+        "book.ipynb": "{\"metadata\": {\"kernelspec\": {\"language\": \"python\"}}, \"cells\": [{\"id\": \"first\", \"cell_type\": \"markdown\", \"metadata\": {\"custom\": \"keep\"}, \"source\": [\"first\"]}, {\"id\": \"second\", \"cell_type\": \"code\", \"metadata\": {}, \"source\": [\"print(1)\"], \"outputs\": [], \"execution_count\": null}]}"
+      },
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "new_source": "print(2)",
+            "cell_id": "second",
+            "cell_type": "code",
+            "language": "python",
+            "edit_mode": "replace",
+            "error": null,
+            "notebook_path": "book.ipynb",
+            "original_file": {
+              "metadata": {
+                "kernelspec": {
+                  "language": "python"
+                }
+              },
+              "cells": [
+                {
+                  "id": "first",
+                  "cell_type": "markdown",
+                  "metadata": {
+                    "custom": "keep"
+                  },
+                  "source": [
+                    "first"
+                  ]
+                },
+                {
+                  "id": "second",
+                  "cell_type": "code",
+                  "metadata": {},
+                  "source": [
+                    "print(1)"
+                  ],
+                  "outputs": [],
+                  "execution_count": null
+                }
+              ]
+            },
+            "updated_file": {
+              "cells": [
+                {
+                  "cell_type": "markdown",
+                  "id": "first",
+                  "metadata": {
+                    "custom": "keep"
+                  },
+                  "source": [
+                    "first"
+                  ]
+                },
+                {
+                  "cell_type": "code",
+                  "execution_count": null,
+                  "id": "second",
+                  "metadata": {},
+                  "outputs": [],
+                  "source": [
+                    "print(2)"
+                  ]
+                }
+              ],
+              "metadata": {
+                "kernelspec": {
+                  "language": "python"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "notebook-markdown",
+      "steps": [
+        {
+          "tool": "NotebookEdit",
+          "args": {
+            "notebook_path": "book.ipynb",
+            "cell_id": "first",
+            "new_source": "updated"
+          }
+        }
+      ],
+      "files": {
+        "book.ipynb": "{\"metadata\": {\"kernelspec\": {\"language\": \"python\"}}, \"cells\": [{\"id\": \"first\", \"cell_type\": \"markdown\", \"metadata\": {\"custom\": \"keep\"}, \"source\": [\"first\"]}, {\"id\": \"second\", \"cell_type\": \"code\", \"metadata\": {}, \"source\": [\"print(1)\"], \"outputs\": [], \"execution_count\": null}]}"
+      },
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "new_source": "updated",
+            "cell_id": "first",
+            "cell_type": "markdown",
+            "language": "python",
+            "edit_mode": "replace",
+            "error": null,
+            "notebook_path": "book.ipynb",
+            "original_file": {
+              "metadata": {
+                "kernelspec": {
+                  "language": "python"
+                }
+              },
+              "cells": [
+                {
+                  "id": "first",
+                  "cell_type": "markdown",
+                  "metadata": {
+                    "custom": "keep"
+                  },
+                  "source": [
+                    "first"
+                  ]
+                },
+                {
+                  "id": "second",
+                  "cell_type": "code",
+                  "metadata": {},
+                  "source": [
+                    "print(1)"
+                  ],
+                  "outputs": [],
+                  "execution_count": null
+                }
+              ]
+            },
+            "updated_file": {
+              "cells": [
+                {
+                  "cell_type": "markdown",
+                  "id": "first",
+                  "metadata": {
+                    "custom": "keep"
+                  },
+                  "source": [
+                    "updated"
+                  ]
+                },
+                {
+                  "cell_type": "code",
+                  "execution_count": null,
+                  "id": "second",
+                  "metadata": {},
+                  "outputs": [],
+                  "source": [
+                    "print(1)"
+                  ]
+                }
+              ],
+              "metadata": {
+                "kernelspec": {
+                  "language": "python"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "notebook-insert",
+      "steps": [
+        {
+          "tool": "NotebookEdit",
+          "args": {
+            "notebook_path": "book.ipynb",
+            "edit_mode": "insert",
+            "cell_id": "first",
+            "new_source": "",
+            "cell_type": "markdown"
+          }
+        }
+      ],
+      "files": {
+        "book.ipynb": "{\"metadata\": {\"kernelspec\": {\"language\": \"python\"}}, \"cells\": [{\"id\": \"first\", \"cell_type\": \"markdown\", \"metadata\": {\"custom\": \"keep\"}, \"source\": [\"first\"]}, {\"id\": \"second\", \"cell_type\": \"code\", \"metadata\": {}, \"source\": [\"print(1)\"], \"outputs\": [], \"execution_count\": null}]}"
+      },
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "new_source": "",
+            "cell_id": "cell-3",
+            "cell_type": "markdown",
+            "language": "python",
+            "edit_mode": "insert",
+            "error": null,
+            "notebook_path": "book.ipynb",
+            "original_file": {
+              "metadata": {
+                "kernelspec": {
+                  "language": "python"
+                }
+              },
+              "cells": [
+                {
+                  "id": "first",
+                  "cell_type": "markdown",
+                  "metadata": {
+                    "custom": "keep"
+                  },
+                  "source": [
+                    "first"
+                  ]
+                },
+                {
+                  "id": "second",
+                  "cell_type": "code",
+                  "metadata": {},
+                  "source": [
+                    "print(1)"
+                  ],
+                  "outputs": [],
+                  "execution_count": null
+                }
+              ]
+            },
+            "updated_file": {
+              "cells": [
+                {
+                  "cell_type": "markdown",
+                  "id": "first",
+                  "metadata": {
+                    "custom": "keep"
+                  },
+                  "source": [
+                    "first"
+                  ]
+                },
+                {
+                  "cell_type": "markdown",
+                  "id": "cell-3",
+                  "metadata": {},
+                  "source": [
+                    ""
+                  ]
+                },
+                {
+                  "cell_type": "code",
+                  "execution_count": null,
+                  "id": "second",
+                  "metadata": {},
+                  "outputs": [],
+                  "source": [
+                    "print(1)"
+                  ]
+                }
+              ],
+              "metadata": {
+                "kernelspec": {
+                  "language": "python"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "notebook-delete",
+      "steps": [
+        {
+          "tool": "NotebookEdit",
+          "args": {
+            "notebook_path": "book.ipynb",
+            "edit_mode": "delete"
+          }
+        }
+      ],
+      "files": {
+        "book.ipynb": "{\"metadata\": {\"kernelspec\": {\"language\": \"python\"}}, \"cells\": [{\"id\": \"first\", \"cell_type\": \"markdown\", \"metadata\": {\"custom\": \"keep\"}, \"source\": [\"first\"]}, {\"id\": \"second\", \"cell_type\": \"code\", \"metadata\": {}, \"source\": [\"print(1)\"], \"outputs\": [], \"execution_count\": null}]}"
+      },
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "new_source": "",
+            "cell_id": "second",
+            "cell_type": null,
+            "language": "python",
+            "edit_mode": "delete",
+            "error": null,
+            "notebook_path": "book.ipynb",
+            "original_file": {
+              "metadata": {
+                "kernelspec": {
+                  "language": "python"
+                }
+              },
+              "cells": [
+                {
+                  "id": "first",
+                  "cell_type": "markdown",
+                  "metadata": {
+                    "custom": "keep"
+                  },
+                  "source": [
+                    "first"
+                  ]
+                },
+                {
+                  "id": "second",
+                  "cell_type": "code",
+                  "metadata": {},
+                  "source": [
+                    "print(1)"
+                  ],
+                  "outputs": [],
+                  "execution_count": null
+                }
+              ]
+            },
+            "updated_file": {
+              "cells": [
+                {
+                  "cell_type": "markdown",
+                  "id": "first",
+                  "metadata": {
+                    "custom": "keep"
+                  },
+                  "source": [
+                    "first"
+                  ]
+                }
+              ],
+              "metadata": {
+                "kernelspec": {
+                  "language": "python"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "notebook-missing-id",
+      "steps": [
+        {
+          "tool": "NotebookEdit",
+          "args": {
+            "notebook_path": "book.ipynb",
+            "cell_id": "missing",
+            "new_source": "x"
+          }
+        }
+      ],
+      "files": {
+        "book.ipynb": "{\"metadata\": {\"kernelspec\": {\"language\": \"python\"}}, \"cells\": [{\"id\": \"first\", \"cell_type\": \"markdown\", \"metadata\": {\"custom\": \"keep\"}, \"source\": [\"first\"]}, {\"id\": \"second\", \"cell_type\": \"code\", \"metadata\": {}, \"source\": [\"print(1)\"], \"outputs\": [], \"execution_count\": null}]}"
+      },
+      "git": false,
+      "expected": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "notebook-missing-source",
+      "steps": [
+        {
+          "tool": "NotebookEdit",
+          "args": {
+            "notebook_path": "book.ipynb",
+            "cell_id": "first"
+          }
+        }
+      ],
+      "files": {
+        "book.ipynb": "{\"metadata\": {\"kernelspec\": {\"language\": \"python\"}}, \"cells\": [{\"id\": \"first\", \"cell_type\": \"markdown\", \"metadata\": {\"custom\": \"keep\"}, \"source\": [\"first\"]}, {\"id\": \"second\", \"cell_type\": \"code\", \"metadata\": {}, \"source\": [\"print(1)\"], \"outputs\": [], \"execution_count\": null}]}"
+      },
+      "git": false,
+      "expected": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "todos",
+      "steps": [
+        {
+          "tool": "TodoWrite",
+          "args": {
+            "todos": [
+              {
+                "content": "one",
+                "activeForm": "one",
+                "status": "pending"
+              },
+              {
+                "content": "two",
+                "activeForm": "two",
+                "status": "pending"
+              },
+              {
+                "content": "three",
+                "activeForm": "three",
+                "status": "pending"
+              }
+            ]
+          }
+        },
+        {
+          "tool": "TodoWrite",
+          "args": {
+            "todos": [
+              {
+                "content": "one",
+                "activeForm": "one",
+                "status": "completed"
+              },
+              {
+                "content": "two",
+                "activeForm": "two",
+                "status": "completed"
+              },
+              {
+                "content": "three",
+                "activeForm": "three",
+                "status": "completed"
+              }
+            ]
+          }
+        },
+        {
+          "tool": "TodoWrite",
+          "args": {
+            "todos": [
+              {
+                "content": "one",
+                "activeForm": "one",
+                "status": "pending"
+              },
+              {
+                "content": "two",
+                "activeForm": "two",
+                "status": "pending"
+              },
+              {
+                "content": "three",
+                "activeForm": "three",
+                "status": "pending"
+              }
+            ]
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "oldTodos": [],
+            "newTodos": [
+              {
+                "activeForm": "one",
+                "content": "one",
+                "status": "pending"
+              },
+              {
+                "activeForm": "two",
+                "content": "two",
+                "status": "pending"
+              },
+              {
+                "activeForm": "three",
+                "content": "three",
+                "status": "pending"
+              }
+            ],
+            "verificationNudgeNeeded": null
+          }
+        },
+        {
+          "value": {
+            "oldTodos": [
+              {
+                "activeForm": "one",
+                "content": "one",
+                "status": "pending"
+              },
+              {
+                "activeForm": "two",
+                "content": "two",
+                "status": "pending"
+              },
+              {
+                "activeForm": "three",
+                "content": "three",
+                "status": "pending"
+              }
+            ],
+            "newTodos": [
+              {
+                "activeForm": "one",
+                "content": "one",
+                "status": "completed"
+              },
+              {
+                "activeForm": "two",
+                "content": "two",
+                "status": "completed"
+              },
+              {
+                "activeForm": "three",
+                "content": "three",
+                "status": "completed"
+              }
+            ],
+            "verificationNudgeNeeded": true
+          }
+        },
+        {
+          "value": {
+            "oldTodos": [],
+            "newTodos": [
+              {
+                "activeForm": "one",
+                "content": "one",
+                "status": "pending"
+              },
+              {
+                "activeForm": "two",
+                "content": "two",
+                "status": "pending"
+              },
+              {
+                "activeForm": "three",
+                "content": "three",
+                "status": "pending"
+              }
+            ],
+            "verificationNudgeNeeded": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "structured",
+      "steps": [
+        {
+          "tool": "StructuredOutput",
+          "args": {
+            "answer": 42
+          }
+        },
+        {
+          "tool": "StructuredOutput",
+          "args": {}
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "data": "Structured output provided successfully",
+            "structured_output": {
+              "answer": 42
+            }
+          }
+        },
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "sleep",
+      "steps": [
+        {
+          "tool": "Sleep",
+          "args": {
+            "duration_ms": 0
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "duration_ms": 0,
+            "message": "Slept for 0ms"
+          }
+        }
+      ]
+    },
+    {
+      "name": "notification",
+      "steps": [
+        {
+          "tool": "SendUserMessage",
+          "args": {
+            "message": "ready",
+            "status": "normal",
+            "attachments": [
+              "one.txt"
+            ]
+          }
+        }
+      ],
+      "files": {
+        "one.txt": "text"
+      },
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "message": "ready",
+            "attachments": [
+              {
+                "isImage": false,
+                "path": "<workspace>/one.txt",
+                "size": 4
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "git",
+      "steps": [
+        {
+          "tool": "GitStatus",
+          "args": {}
+        },
+        {
+          "tool": "GitShow",
+          "args": {
+            "commit": "HEAD",
+            "path": "one.txt"
+          }
+        },
+        {
+          "tool": "GitShow",
+          "args": {
+            "commit": "HEAD",
+            "path": "one.txt",
+            "format": "metadata"
+          }
+        },
+        {
+          "tool": "GitDiff",
+          "args": {
+            "commit": "HEAD",
+            "commit2": "HEAD"
+          }
+        }
+      ],
+      "files": {
+        "one.txt": "committed\n"
+      },
+      "git": true,
+      "expected": [
+        {
+          "value": {
+            "output": "## fixture"
+          }
+        },
+        {
+          "value": {
+            "output": "committed"
+          }
+        },
+        {
+          "error": true
+        },
+        {
+          "error": true
+        }
+      ],
+      "adaptations": {
+        "3": {
+          "reason": "Upstream git_stdout treats successful empty diff as an error; Python preserves empty success.",
+          "expected": {
+            "value": {
+              "output": ""
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "repl",
+      "steps": [
+        {
+          "tool": "REPL",
+          "args": {
+            "language": "python",
+            "code": "print(3 * 7)"
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "error": true
+        }
+      ],
+      "adaptations": {
+        "0": {
+          "reason": "Frozen Windows runtime detection depends on sh -lc and cannot find Python in the isolated environment; Python uses sys.executable.",
+          "expected": {
+            "value": {
+              "language": "python",
+              "stdout": "21\n",
+              "stderr": "",
+              "exitCode": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "search-",
+      "steps": [
+        {
+          "tool": "ToolSearch",
+          "args": {
+            "query": ""
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "matches": [
+              "Agent",
+              "AskUserQuestion",
+              "Config",
+              "CronCreate",
+              "CronDelete"
+            ],
+            "query": "",
+            "normalized_query": "",
+            "total_deferred_tools": 49,
+            "pending_mcp_servers": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "search-GitStatus",
+      "steps": [
+        {
+          "tool": "ToolSearch",
+          "args": {
+            "query": "GitStatus"
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "matches": [
+              "GitStatus"
+            ],
+            "query": "GitStatus",
+            "normalized_query": "gitstatus",
+            "total_deferred_tools": 49,
+            "pending_mcp_servers": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "search-select:git_status,TodoWrite",
+      "steps": [
+        {
+          "tool": "ToolSearch",
+          "args": {
+            "query": "select:git_status,TodoWrite"
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "matches": [
+              "GitStatus",
+              "TodoWrite"
+            ],
+            "query": "select:git_status,TodoWrite",
+            "normalized_query": "selectgitstatus todowrite",
+            "total_deferred_tools": 49,
+            "pending_mcp_servers": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "search-+git changes",
+      "steps": [
+        {
+          "tool": "ToolSearch",
+          "args": {
+            "query": "+git changes"
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "matches": [
+              "GitDiff",
+              "GitBlame",
+              "GitLog",
+              "GitShow",
+              "GitStatus"
+            ],
+            "query": "+git changes",
+            "normalized_query": "git changes",
+            "total_deferred_tools": 49,
+            "pending_mcp_servers": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "search-worker trust",
+      "steps": [
+        {
+          "tool": "ToolSearch",
+          "args": {
+            "query": "worker trust"
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "value": {
+            "matches": [
+              "WorkerResolveTrust",
+              "WorkerCreate",
+              "WorkerObserve",
+              "WorkerAwaitReady",
+              "WorkerGet"
+            ],
+            "query": "worker trust",
+            "normalized_query": "worker trust",
+            "total_deferred_tools": 49,
+            "pending_mcp_servers": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "invalid-TodoWrite-23",
+      "steps": [
+        {
+          "tool": "TodoWrite",
+          "args": {
+            "todos": []
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-TodoWrite-24",
+      "steps": [
+        {
+          "tool": "TodoWrite",
+          "args": {
+            "todos": [
+              {
+                "content": " ",
+                "activeForm": "doing",
+                "status": "pending"
+              }
+            ]
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-TodoWrite-25",
+      "steps": [
+        {
+          "tool": "TodoWrite",
+          "args": {
+            "todos": [
+              {
+                "content": "valid",
+                "activeForm": " ",
+                "status": "pending"
+              }
+            ]
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-SendUserMessage-26",
+      "steps": [
+        {
+          "tool": "SendUserMessage",
+          "args": {
+            "message": " ",
+            "status": "normal"
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-REPL-27",
+      "steps": [
+        {
+          "tool": "REPL",
+          "args": {
+            "language": "python",
+            "code": " "
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-Agent-28",
+      "steps": [
+        {
+          "tool": "Agent",
+          "args": {
+            "description": " ",
+            "prompt": "never call model"
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "error": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-Agent-29",
+      "steps": [
+        {
+          "tool": "Agent",
+          "args": {
+            "description": "test",
+            "prompt": " "
+          }
+        }
+      ],
+      "files": {},
+      "git": false,
+      "expected": [
+        {
+          "error": true
+        }
+      ]
+    }
+  ]
+}

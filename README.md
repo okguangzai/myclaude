@@ -2,7 +2,7 @@
 
 这是面向 AI 应用与 Agent 开发学习的 Python 重构版。后端使用 FastAPI，前端使用 Vue 3 和 TypeScript，提供模型配置、流式聊天、55 个上游工具、MCP、插件/hooks、多 Agent、后台任务、知识库检索和运行轨迹。项目不依赖 Rust 可执行文件。
 
-v0.6 继续补齐运行行为：Worker 错误目录与任务回执检测、原版文件观察接口、并发发送与取消，以及 CLI 参数错误契约。当前 Windows 完整回归 **244 通过、1 跳过**，包含 **79 组原 Rust Worker 对照场景**、27 个 CLI 错误案例和真实本地 HTTP OAuth 联调。尚未完成原版所有接口与参数的逐项等价验收，详细范围见 [全量迁移进度](docs/全量迁移进度.md)。
+v0.7 补齐 CLI 本地命令、工具返回与参数、子 Agent 类型及模型、会话管理、Config 偏好、LSP/Cron 和 PDF/Lane 辅助模块。11 个 crate 职责均有 Python 对应实现；原版功能、Python/Vue 适配和原版占位项见 [迁移收口清单](docs/迁移收口清单.md)。保留原 Rust 实际执行生成的差分夹具，日常运行和 CI 无需 Rust。
 
 ## 现在开始
 
@@ -22,7 +22,7 @@ cd C:\csg\work\project\myCalude
 - [扩展开发与学习](docs/扩展开发与学习.md)：MCP、插件、hooks、任务调度的实践与源码阅读顺序。
 - [逐项迁移矩阵](docs/迁移矩阵.md)：55 个工具和 140 个命令的逐项状态。
 - [迁移与验收](docs/迁移与验收.md)：Rust 能力映射、已完成与未迁移内容、验证方式和实际结果。
-- [全量迁移进度](docs/全量迁移进度.md)：按运行时模块记录本次代码、验证证据与尚未完成的差异。
+- [全量迁移进度](docs/全量迁移进度.md)：按运行时模块记录代码、历史验收和最终适配约定。
 - [独立程序与模型路由](docs/独立程序与模型路由.md)：Analog、RAG、Mock 的启动方式和备用模型配置。
 - [交互式 API 文档](http://127.0.0.1:8000/api/docs)：服务运行时可用。
 
@@ -56,7 +56,7 @@ npm.cmd run build
 
 私有仓库：<https://gitlab.csghome.fun/csg/myclaude>。服务器入口：<https://myclaude.csghome.fun/>。
 `main` 推送触发测试、镜像构建和 Kubernetes 发布，详见 [GitLab 部署与运维](docs/GitLab部署与运维.md)。
-Linux 流水线已有 **122 项测试通过**；云模型、Embedding、Qdrant 与页面访问验证见 [部署验收记录](docs/部署验收记录.md)。
+Linux 流水线执行全部后端测试和 Vue 构建；准确提交、测试数量及云模型、Embedding、Qdrant 验证见 [部署验收记录](docs/部署验收记录.md)。
 
 
 

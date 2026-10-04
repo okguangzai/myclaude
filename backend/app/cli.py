@@ -16,19 +16,24 @@ from .agent import Agent
 from .commands import Commands
 from .config import DATA, ROOT, ConfigStore
 from .db import Database
-from .extensions import Extensions
+from .extensions import CATALOG, Extensions
 from .oauth import OAuth
 from .providers import Provider
 from .rag import RagService
 from .tools import Tools
 from .tunnel import Tunnel
 
-VERSION = "0.6.0"
+VERSION = "0.7.0"
 LOCAL = {
     "status",
     "doctor",
     "config",
     "models",
+    "model",
+    "settings",
+    "marketplace",
+    "login",
+    "logout",
     "session",
     "sessions",
     "resume",
@@ -61,6 +66,10 @@ def error_payload(message, kind="runtime_error", hint=None):
         "missing_prompt",
         "missing_argument",
         "invalid_permission_mode",
+        "unknown_help_topic",
+        "unsupported_models_action",
+        "unsupported_config_section",
+        "interactive_only",
     }:
         kind, message = message.split(": ", 1)
     if "\nUsage:" in message:
@@ -130,7 +139,9 @@ def parser():
         default=os.environ.get("CLAW_OUTPUT_FORMAT", "text").lower(),
     )
     p.add_argument("--json", action="store_true")
+    p.add_argument("--force", action="store_true")
     p.add_argument("--cwd", "-C", "--directory")
+    p.add_argument("--allow-broad-cwd", action="store_true")
     p.add_argument("--data-dir", type=Path, default=DATA)
     p.add_argument("--model")
     p.add_argument(
@@ -245,8 +256,34 @@ async def run(args):
                 )
                 return 0
             command, rest = (words[0], words[1:]) if words else (None, [])
+            command = {"model": "models", "marketplace": "plugins", "sessions": "session"}.get(
+                command, command
+            )
+            if command == "settings":
+                command, rest = "config", ["settings"]
+            if command in {"agents", "skills"} and not args.prompt:
+                from .cli_local import definitions_value
+
+                report = definitions_value(ext, command, rest)
+                if report is not None:
+                    emit(report, args)
+                    return 1 if report["status"] == "error" else 0
             if command in LOCAL and not args.prompt:
-                if command in {"sessions", "session"} and not rest:
+                if command == "login":
+                    if rest == ["status"]:
+                        value = oauth.status()
+                    else:
+                        if not sys.stdin.isatty():
+                            raise ValueError(
+                                "login 需要交互终端粘贴授权回调；也可使用 Web 设置页 OAuth 登录"
+                            )
+                        authorization = oauth.begin()
+                        print(authorization["authorize_url"], file=sys.stderr)
+                        callback = await asyncio.to_thread(input, "完成授权后粘贴完整回调 URL › ")
+                        value = await oauth.complete(callback.strip())
+                elif command == "logout":
+                    value = await oauth.logout()
+                elif command in {"sessions", "session"} and not rest:
                     value = db.all(
                         "SELECT id,title,updated_at FROM sessions ORDER BY updated_at DESC"
                     )
@@ -296,28 +333,23 @@ async def run(args):
                         value = inspect(
                             store, rest[1] if len(rest) > 1 else None, rest[0] == "import"
                         )
-                    elif rest and rest[0] == "env":
-                        value = {
-                            "env": {
-                                key: "[REDACTED]"
-                                for key in getattr(store, "runtime_environment", {})
-                            }
-                        }
                     else:
-                        value = store.public()
-                    if rest and rest[0] not in {"inspect", "import", "env", "show"}:
-                        if rest[0] not in value:
-                            raise ValueError("未知或保密的配置字段")
-                        value = {rest[0]: value[rest[0]]}
+                        from .cli_local import config_value
+
+                        emit(
+                            config_value(ext, rest[0] if rest and rest[0] != "show" else None), args
+                        )
+                        return 0
                 elif command == "models":
-                    value = {
-                        "model": store.current.model,
-                        "provider": store.current.provider,
-                        "base_url": store.current.base_url,
-                    }
-                    if rest and rest[0] not in {"list", "status"}:
-                        store.update({"model": rest[-1]})
-                        value["model"] = store.current.model
+                    from .cli_local import models_value
+
+                    emit(models_value(store), args)
+                    return 0
+                elif command == "diff":
+                    from .cli_local import diff_value
+
+                    emit(await diff_value(store.current.workspace), args)
+                    return 0
                 elif command == "state":
                     from .remote import ProxyBootstrap
 
@@ -339,6 +371,13 @@ async def run(args):
                     )
                     if actual == "compact":
                         argument = " ".join(rest)
+                    if (
+                        actual in {"session", "sessions"}
+                        and rest
+                        and rest[0] == "delete"
+                        and args.force
+                    ):
+                        argument += " --force"
                     value = await Commands(ext).execute(
                         "/" + actual + (" " + argument if argument else ""),
                         session_id,
@@ -376,7 +415,9 @@ async def run(args):
 
 async def interact(ext, agent, session_id, prompt, args):
     session_id = session_id or ext.db.create_session("CLI 会话")["id"]
-    if ext.db.all("SELECT id FROM runs WHERE session_id=? AND status='running'", (session_id,)):
+    if not prompt.startswith("/") and ext.db.all(
+        "SELECT id FROM runs WHERE session_id=? AND status='running'", (session_id,)
+    ):
         raise ValueError("该会话已有正在执行的任务")
     if prompt.startswith("/"):
         result = await Commands(ext).execute(prompt, session_id, args.permission)
@@ -542,14 +583,44 @@ def validate_operands(p, args):
     if not words or args.prompt:
         return
     command, rest = words[0], words[1:]
+    if command in {item["name"] for item in CATALOG["commands"]} - LOCAL - {"system-prompt"}:
+        p.error(
+            "interactive_only: 此命令应通过 /"
+            + command
+            + ' 执行。\nUsage: myclaude -p "/'
+            + command
+            + '"'
+        )
+    if args.force and not (command in {"session", "sessions"} and rest and rest[0] == "delete"):
+        p.error("invalid_flag_value: --force 仅用于 session delete")
     usage = None
-    if command == "export" and (len(rest) > 1 or rest and args.output):
+    if command in {"model", "models"}:
+        if len(rest) > 1:
+            usage = command + " [help|list|status]"
+        elif rest and rest[0] not in {"list", "status"}:
+            p.error(
+                "unsupported_models_action: 未知模型查询操作。\nUsage: myclaude models [help|list|status]"
+            )
+    elif (
+        command
+        in {"settings", "init", "setup", "diff", "state", "version", "bootstrap-plan", "logout"}
+        and rest
+    ):
+        usage = command
+    elif command == "login" and rest not in ([], ["status"]):
+        usage = "login [status]"
+    elif command == "export" and (len(rest) > 1 or rest and args.output):
         usage = "export [PATH] [--session SESSION] [--output PATH]"
     elif (
         command == "config" and rest and len(rest) > (2 if rest[0] in {"inspect", "import"} else 1)
     ):
         usage = "config show|env|FIELD|inspect [PATH]|import [PATH]"
-    elif command in {"agents", "skills"} and rest and rest[0] == "show" and len(rest) > 2:
+    elif (
+        command in {"agents", "skills"}
+        and rest
+        and rest[0] in {"show", "info", "describe"}
+        and len(rest) > 2
+    ):
         usage = command + " show NAME"
     if usage:
         p.error("unexpected_extra_args: extra positional arguments.\nUsage: myclaude " + usage)
@@ -559,9 +630,36 @@ def main(argv=None):
     p = parser()
     p.raw_arguments = list(sys.argv[1:] if argv is None else argv)
     args = p.parse_intermixed_args(prepare_arguments(p))
-    validate_operands(p, args)
     if args.output_format not in {"text", "json", "stream-json"}:
         p.error("CLAW_OUTPUT_FORMAT must be text, json or stream-json")
+    if args.json:
+        args.output_format = "stream-json"
+    from .cli_local import help_topic, help_value
+
+    topic = help_topic(args.words, args)
+    if topic is not None:
+        if topic:
+            try:
+                value = help_value(topic)
+            except ValueError as error:
+                p.error(str(error))
+            emit(value if args.output_format != "text" else value["message"], args)
+        else:
+            message = "Usage: " + p.format_help().removeprefix("usage: ")
+            emit(
+                {"kind": "help", "status": "ok", "message": message, "commands": sorted(LOCAL)}
+                if args.output_format != "text"
+                else message,
+                args,
+            )
+        return 0
+    validate_operands(p, args)
+    if args.cwd and not args.allow_broad_cwd:
+        candidate = Path(args.cwd).expanduser().resolve()
+        if candidate == Path(candidate.anchor) or candidate == Path.home().resolve():
+            p.error(
+                "invalid_flag_value: 工作区过于宽泛；选择项目目录，或显式添加 --allow-broad-cwd"
+            )
     if args.words and args.words[0] == "system-prompt":
         args.print_system_prompt = True
         args.words = args.words[1:]
@@ -569,22 +667,18 @@ def main(argv=None):
         p.error("--compact is only supported with prompt mode")
     if args.words and args.words[0] == "prompt":
         args.words = args.words[1:]
-    if args.json:
-        args.output_format = "stream-json"
     if args.version or args.words == ["version"]:
         emit({"kind": "version", "status": "ok", "version": VERSION, "runtime": "python"}, args)
         return 0
-    if args.help or (args.words and args.words[0] == "help"):
-        message = "Usage: " + p.format_help().removeprefix("usage: ")
-        emit(
-            {"kind": "help", "status": "ok", "message": message, "commands": sorted(LOCAL)}
-            if args.output_format != "text"
-            else message,
-            args,
-        )
-        return 0
     try:
         from .bootstrap import acp_status, manifests, plan
+
+        if args.words == ["init"] and not args.prompt:
+            from .cli_local import initialize
+
+            value = initialize(args.cwd or Path.cwd())
+            emit(value if args.output_format != "text" else value["message"], args)
+            return 0
 
         if args.words == ["bootstrap-plan"]:
             emit(plan(), args)

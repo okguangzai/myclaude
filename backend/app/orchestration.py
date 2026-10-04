@@ -12,6 +12,57 @@ from itertools import combinations
 GREEN_LEVELS = ["targeted_tests", "package", "workspace", "merge_ready"]
 
 
+def detect_lane_completion(output, test_green, has_pushed):
+    """Port the upstream evidence evaluator; never push, merge or delete a session."""
+    if (
+        output.get("error") is not None
+        or output.get("status", "").lower() not in {"completed", "finished"}
+        or output.get("current_blocker") is not None
+        or not test_green
+        or not has_pushed
+    ):
+        return None
+    return {
+        "lane_id": output["agent_id"],
+        "green_level": 3,
+        "green_contract_satisfied": True,
+        "branch_freshness": 0,
+        "blocker": "none",
+        "review_status": "approved",
+        "diff_scope": "scoped",
+        "completed": True,
+        "reconciled": False,
+        "retry_count": 0,
+        "retry_limit": 1,
+        "rebase_required": False,
+        "stale_cleanup_required": False,
+        "approval_token": None,
+    }
+
+
+def evaluate_completed_lane(context):
+    return evaluate_policy(
+        [
+            {
+                "name": "closeout-completed-lane",
+                "priority": 10,
+                "condition": {
+                    "kind": "and",
+                    "conditions": ["lane_completed", {"kind": "green_at", "level": 3}],
+                },
+                "action": {"kind": "closeout_lane"},
+            },
+            {
+                "name": "cleanup-completed-session",
+                "priority": 5,
+                "condition": "lane_completed",
+                "action": {"kind": "cleanup_session"},
+            },
+        ],
+        context,
+    )
+
+
 def branch_collisions(intents):
     found = set()
     for left, right in combinations(intents, 2):

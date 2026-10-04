@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import tomllib
@@ -42,18 +43,38 @@ class Assets:
 
     def roots(self, kind):
         workspace = Path(self.store.current.workspace)
-        return [
+        config_home = Path(os.environ.get("CLAW_CONFIG_HOME", str(Path.home() / ".claw")))
+        roots = [
             *(self.plugins.asset_roots(kind) if self.plugins else []),
+            config_home / kind,
+            *(
+                [
+                    config_home / "commands",
+                    workspace / ".claude/commands",
+                    workspace / ".claw/commands",
+                ]
+                if kind == "skills"
+                else []
+            ),
             self.store.data / kind,
             workspace / kind,
             workspace / ".claude" / kind,
             workspace / ".claw" / kind,
         ]
+        return list(dict.fromkeys(roots))
 
-    def list(self, kind):
+    def list(self, kind, query=""):
+        items = self.inventory(kind)["items"]
+        return [
+            item
+            for item in items
+            if query.lower() in str(item["metadata"].get("name", item["name"])).lower()
+        ]
+
+    def inventory(self, kind):
         if kind not in {"skills", "agents"}:
             raise ValueError("未知定义类型")
-        records = {}
+        records, invalid = {}, []
         for root in self.roots(kind):
             if not root.exists():
                 continue
@@ -65,8 +86,23 @@ class Assets:
                     continue
                 if path.stat().st_size > 65536:
                     continue
-                text = path.read_text(encoding="utf-8-sig")
-                meta = tomllib.loads(text) if path.suffix == ".toml" else frontmatter(text)
+                try:
+                    text = path.read_text(encoding="utf-8-sig")
+                    meta = tomllib.loads(text) if path.suffix == ".toml" else frontmatter(text)
+                    if (
+                        kind == "agents"
+                        and path.suffix == ".md"
+                        and not any(meta.get(key) for key in ("name", "description"))
+                    ):
+                        raise ValueError("Markdown Agent 需要 name 或 description 元数据")
+                    if any(
+                        key in meta and not isinstance(meta[key], str)
+                        for key in ("name", "description", "model", "prompt")
+                    ):
+                        raise ValueError("定义字段必须是字符串")
+                except (ValueError, OSError, yaml.YAMLError) as error:
+                    invalid.append({"path": str(path), "error": type(error).__name__})
+                    continue
                 name = file.name if file.is_dir() else file.stem
                 records[name] = {
                     "name": name,
@@ -74,11 +110,19 @@ class Assets:
                     "scope": "user" if root == self.store.data / kind else "project",
                     "metadata": meta,
                 }
-        return sorted(records.values(), key=lambda x: x["name"])
+        return {"items": sorted(records.values(), key=lambda x: x["name"]), "invalid": invalid}
 
     def read(self, kind, name):
         name = invocation_name(name)
-        item = next((x for x in self.list(kind) if x["name"].lower() == name), None)
+        item = next(
+            (
+                x
+                for x in self.list(kind)
+                if x["name"].lower() == name
+                or invocation_name(x["metadata"].get("name") or x["name"]) == name
+            ),
+            None,
+        )
         if not item:
             raise ValueError(f"未找到 {kind}: {name}")
         path = Path(item["path"])

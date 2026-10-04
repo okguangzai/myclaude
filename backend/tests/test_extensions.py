@@ -62,9 +62,7 @@ async def test_catalog_and_permission_enforcement(runtime):
         await call(e, "read_file", {"path": ".env"})
     statuses = Commands(e).catalog()
     assert all(
-        c["python_status"] == "available-parity-pending"
-        for c in statuses
-        if c["upstream_implemented"]
+        c["python_status"] == "python-adapted" for c in statuses if c["upstream_implemented"]
     )
     assert all(not c["upstream_implemented"] for c in statuses if c["name"] in UNSUPPORTED)
 
@@ -548,6 +546,19 @@ async def test_real_lsp_and_git_queries(runtime):
 
 
 @pytest.mark.asyncio
+async def test_definition_command_filters_and_show_aliases(runtime):
+    runtime.assets.create_agent("reviewer", description="Review code")
+    runtime.assets.create_agent("writer", description="Write code")
+    commands = Commands(runtime)
+    result = await commands.execute("/agents list VIEW", None, "read-only")
+    assert [item["name"] for item in result["result"]] == ["reviewer"]
+    result = await commands.execute("/agents info reviewer", None, "read-only")
+    assert result["result"]["metadata"]["description"] == "Review code"
+    with pytest.raises(ValueError, match="unexpected_extra_args"):
+        await commands.execute("/agents show reviewer extra", None, "read-only")
+
+
+@pytest.mark.asyncio
 async def test_commands_session_workflows(runtime):
     e = runtime
     commands = Commands(e)
@@ -585,8 +596,10 @@ async def test_commands_session_workflows(runtime):
     await commands.execute("/pin important", key, "read-only")
     assert e.jobs.records("bookmark")
     await commands.execute("/unpin", key, "read-only")
-    await commands.execute("/clear", key, "read-only")
-    assert not e.db.session(key)["messages"]
+    fresh = await commands.execute("/clear", key, "read-only")
+    assert fresh["session_id"] != key
+    assert not e.db.session(fresh["session_id"])["messages"]
+    assert e.db.session(key)["messages"]
     assert (await commands.execute("/plan investigate", key, "danger-full-access"))[
         "permission"
     ] == "read-only"

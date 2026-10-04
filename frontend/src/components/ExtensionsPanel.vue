@@ -414,17 +414,17 @@ onMounted(() => refresh().catch((e) => (error.value = e.message)));
                 <span
                   class="status"
                   :class="
-                    c.python_status === 'implemented'
+                    c.python_status !== 'upstream-placeholder'
                       ? 'completed'
                       : 'cancelled'
                   "
                   >{{
-                    c.python_status === "implemented"
+                    c.python_status === "python-adapted"
                       ? c.mode === "agent-prompt"
                         ? "Agent 工作流"
-                        : "已实现"
-                      : c.python_status === "available-parity-pending"
-                        ? "可用 · 等价核验中"
+                        : "Python/Vue 适配"
+                      : c.python_status === "python-extension"
+                        ? "Python 扩展"
                         : "原有占位 · 未实现"
                   }}</span
                 >

@@ -88,7 +88,9 @@ class Commands:
                 "upstream_implemented": c["implemented"],
                 "python_status": "upstream-placeholder"
                 if c["name"] in UNSUPPORTED
-                else "available-parity-pending",
+                else "python-adapted"
+                if c["implemented"]
+                else "python-extension",
                 "mode": "agent-prompt" if c["name"] in PROMPTS else "web-action",
             }
             for c in CATALOG["commands"]
@@ -102,10 +104,15 @@ class Commands:
         session = self.db.session(session_id) if session_id else None
         if session_id and not session:
             raise ValueError("会话不存在")
-        if ext.jobs.agent and session_id in ext.jobs.agent.active:
+        can_run_during_execution = command in {"approve", "deny", "stop"}
+        if ext.jobs.agent and session_id in ext.jobs.agent.active and not can_run_during_execution:
             raise ValueError("会话正在运行，请先停止再执行命令")
-        if session_id and self.db.all(
-            "SELECT id FROM runs WHERE session_id=? AND status='running'", (session_id,)
+        if (
+            session_id
+            and not can_run_during_execution
+            and self.db.all(
+                "SELECT id FROM runs WHERE session_id=? AND status='running'", (session_id,)
+            )
         ):
             raise ValueError("会话正在运行，请先停止再执行命令")
 
@@ -123,6 +130,12 @@ class Commands:
         if command in {"plugin", "skills", "agents", "mcp", "session"} and argument:
             parts = shlex.split(argument.replace("\\", "/"))
             action, rest = parts[0], parts[1:]
+            if command in {"agents", "skills"}:
+                action = {"info": "show", "describe": "show"}.get(action, action)
+                if action == "list" and rest and rest[0].startswith("-"):
+                    raise ValueError("unknown_option: 列表过滤词不能是选项")
+                if action == "show" and len(rest) > 1:
+                    raise ValueError("unexpected_extra_args: show 只接受一个名称")
             target = rest[0] if rest else None
             if command == "plugin":
                 if action == "registry":
@@ -147,7 +160,7 @@ class Commands:
                 )
             if command == "skills":
                 if action in {"list", "status"}:
-                    return result(ext.assets.list("skills"))
+                    return result(ext.assets.list("skills", " ".join(rest)))
                 if action in {"install", "uninstall", "remove"} and target:
                     require(permission, "workspace-write")
                     return result(
@@ -155,16 +168,20 @@ class Commands:
                         if action == "install"
                         else ext.assets.uninstall_skill(target)
                     )
-                if action == "show" and target:
-                    return result(ext.assets.read("skills", target))
+                if action == "show":
+                    return result(
+                        ext.assets.read("skills", target) if target else ext.assets.list("skills")
+                    )
             if command == "agents":
                 if action == "list":
-                    return result(ext.assets.list("agents"))
+                    return result(ext.assets.list("agents", " ".join(rest)))
                 if action == "create" and target:
                     require(permission, "workspace-write")
                     return result(ext.assets.create_agent(target))
-                if action == "show" and target:
-                    return result(ext.assets.read("agents", target))
+                if action == "show":
+                    return result(
+                        ext.assets.read("agents", target) if target else ext.assets.list("agents")
+                    )
                 if action == "run" and target and len(rest) > 1:
                     definition = ext.assets.read("agents", target)
                     prompt = (
@@ -193,6 +210,25 @@ class Commands:
                     require(permission, "danger-full-access")
                     return result(await ext.mcp.configure(json.loads(argument.partition(" ")[2])))
             if command == "session":
+                if action in {"exists", "check"} and target:
+                    return result(
+                        {
+                            "kind": "session_exists",
+                            "session_id": target,
+                            "exists": ext.sessions.exists(target),
+                        }
+                    )
+                if action == "delete" and target:
+                    require(permission, "workspace-write")
+                    if rest[1:] != ["--force"]:
+                        return result(
+                            {
+                                "kind": "session_delete",
+                                "status": "confirmation_required",
+                                "hint": f"/session delete {target} --force",
+                            }
+                        )
+                    return result(ext.sessions.delete(target, session_id))
                 if action == "list":
                     return result(
                         self.db.all(
@@ -214,9 +250,10 @@ class Commands:
                 if action == "fork":
                     loaded = ext.sessions.fork(session_id or "latest", target)
                     return {"kind": "session", "session_id": loaded["id"]}
-                if action in {"show", "resume"}:
+                if action in {"show", "resume", "switch"}:
                     loaded = ext.sessions.resolve(
-                        target or "latest", exclude_id=session_id if action == "resume" else None
+                        target or "latest",
+                        exclude_id=session_id if action in {"resume", "switch"} else None,
                     )
                     return (
                         result(loaded)
@@ -266,7 +303,7 @@ class Commands:
         if command in {"status", "doctor", "sandbox", "version", "providers"}:
             return result(
                 {
-                    "version": "0.6.0",
+                    "version": "0.7.0",
                     "language": "Python",
                     "provider": cfg.provider,
                     "model": cfg.model,
@@ -284,6 +321,8 @@ class Commands:
         if command in {"cost", "stats", "tokens", "budget"}:
             totals = self.db.all(
                 "SELECT COUNT(*) AS runs,COALESCE(SUM(input_tokens),0) AS input_tokens,COALESCE(SUM(output_tokens),0) AS output_tokens FROM runs"
+                + (" WHERE session_id=?" if session_id else ""),
+                (session_id,) if session_id else (),
             )[0]
             return result(
                 {
@@ -292,6 +331,8 @@ class Commands:
                     "max_tokens": cfg.max_tokens,
                     "tree_requests": 40,
                     "cost": None,
+                    "scope": "session" if session_id else "application",
+                    "messages": len(session["messages"]) if session else 0,
                     "note": "实际 Token 用量；未配置价格表，不估造费用",
                 }
             )
@@ -353,7 +394,15 @@ class Commands:
                     "message": "密钥只可在设置页重新填写，接口不会返回已存密钥",
                 }
             )
-        if command in {"clear", "reset"}:
+        if command == "clear":
+            loaded = self.db.create_session("新对话")
+            ext.jobs.put("session_metadata", loaded["id"], {"workspace_root": cfg.workspace})
+            return {
+                "kind": "session",
+                "session_id": loaded["id"],
+                "previous_session_preserved": True,
+            }
+        if command == "reset":
             need_session()
             self.db.save_messages(session_id, [])
             return {"kind": "session", "session_id": session_id}
@@ -371,7 +420,32 @@ class Commands:
                 "session_id": session_id,
                 "note": "仅修改会话上下文；已执行的文件与进程操作不会撤销",
             }
-        if command in {"history", "session", "resume", "teleport"}:
+        if command == "teleport":
+            if not argument:
+                raise ValueError("用法 /teleport 文件名或搜索表达式")
+            return result(
+                {
+                    "target": argument,
+                    "files": [
+                        str(p.relative_to(Path(cfg.workspace)))
+                        for p in ext.paths(cfg)
+                        if argument.casefold() in str(p.relative_to(Path(cfg.workspace))).casefold()
+                    ][:10],
+                    "content": await ext.execute(
+                        cfg, permission, "grep_search", {"pattern": argument, "head_limit": 20}
+                    ),
+                }
+            )
+        if command == "history":
+            need_session()
+            return result(
+                {
+                    "session_id": session_id,
+                    "messages": session["messages"],
+                    "count": len(session["messages"]),
+                }
+            )
+        if command in {"session", "resume"}:
             if argument:
                 loaded = ext.sessions.resolve(
                     argument, exclude_id=session_id if command == "resume" else None
@@ -413,26 +487,32 @@ class Commands:
                     {"title": session["title"], "tag": argument, "created_at": now()},
                 )
             return result(ext.jobs.records("bookmark"))
-        if command in {"memory", "init"}:
-            path = "MEMORY.md" if command == "memory" else "AGENTS.md"
+        if command == "init":
+            from .cli_local import initialize
+
+            require(permission, "workspace-write")
             if argument:
-                return await tool("write_file", {"path": path, "content": argument + "\n"})
-            if command == "init" and not safe_path(cfg.workspace, path).exists():
-                return await tool(
-                    "write_file",
-                    {
-                        "path": path,
-                        "content": "# 工作区约定\n\n先读取项目文档，再执行修改和验证。\n",
-                    },
-                )
-            return await tool("read_file", {"path": path})
+                raise ValueError("unexpected_extra_args: /init 不接受额外参数")
+            return result(initialize(cfg.workspace))
+        if command == "memory":
+            from .prompt import discover_instructions
+
+            if argument:
+                raise ValueError("unexpected_extra_args: /memory 只查看加载的指令文件")
+            return result({"files": discover_instructions(cfg.workspace, cfg.rules_import)})
         if command in {"files", "map"}:
             return await tool("glob_search", {"pattern": argument or "**/*"})
         if command == "search":
             return await tool("grep_search", {"pattern": argument})
         if command in {"diff", "log", "blame", "git", "stash", "commit", "pr", "issue"}:
             if command == "diff":
-                return await tool("GitDiff", {"path": argument} if argument else {})
+                from .cli_local import diff_value
+
+                return (
+                    await tool("GitDiff", {"path": argument})
+                    if argument
+                    else result(await diff_value(cfg.workspace))
+                )
             if command == "log":
                 return await tool("GitLog", {"count": int(argument or 10)})
             if command == "blame":
@@ -456,6 +536,25 @@ class Commands:
                 )
             return result(await process(argv, cfg.workspace, timeout=60))
         if command == "debug-tool-call":
+            if not argument:
+                need_session()
+                calls = [
+                    call
+                    for message in session["messages"]
+                    for call in message.get("tool_calls", [])
+                ]
+                if not calls:
+                    raise ValueError("no prior tool call found in session")
+                call = calls[-1]
+                output = next(
+                    (
+                        message
+                        for message in reversed(session["messages"])
+                        if message.get("tool_call_id") == call["id"]
+                    ),
+                    None,
+                )
+                return result({"call": call, "output": output, "replayed": False})
             name, _, raw = argument.partition(" ")
             return await tool(name, json.loads(raw or "{}"))
         if command in {"mcp", "plugin", "agents", "skills", "hooks", "tasks", "team", "cron"}:
@@ -506,14 +605,34 @@ class Commands:
         if command == "web":
             return await tool("WebFetch", {"url": argument, "prompt": "读取网页"})
         if command in {"approve", "deny"}:
-            question = ext.questions.get(argument)
+            candidates = [
+                (key, q)
+                for key, q in ext.questions.items()
+                if q.get("session_id") == session_id and not q["future"].done()
+            ]
+            key = argument or (candidates[0][0] if len(candidates) == 1 else "")
+            question = ext.questions.get(key)
             if not question:
                 raise ValueError(
                     "用法 /approve 或 /deny 问题ID；此命令仅回答待处理问题，不扩大权限"
                 )
-            question["future"].set_result("同意" if command == "approve" else "拒绝")
-            return result({"answered": argument})
+            if question["future"].done():
+                raise ValueError("问题已经回答或过期")
+            approved = next(
+                (
+                    option
+                    for option in question.get("options", [])
+                    if option in {"允许本次", "允许", "同意", "Approve", "Allow"}
+                ),
+                "同意",
+            )
+            question["future"].set_result(approved if command == "approve" else "拒绝")
+            return result({"answered": key})
         if command in {"config", "env", "workspace", "add-dir", "project"}:
+            if command == "config":
+                from .cli_local import config_value
+
+                return result(config_value(ext, argument or None))
             if command in {"workspace", "add-dir", "project"} and argument:
                 self.store.update({"workspace": argument})
             return result(self.store.public())

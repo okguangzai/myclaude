@@ -113,10 +113,14 @@ class Agent:
                         ),
                         0,
                     )
-                    if len(history) > 4 and (
-                        len(json.dumps(history, ensure_ascii=False)) > cfg.context_chars
-                        or cfg.auto_compact_tokens
-                        and previous_tokens >= cfg.auto_compact_tokens
+                    if (
+                        cfg.upstream_preferences.get("autoCompactEnabled", True)
+                        and len(history) > 4
+                        and (
+                            len(json.dumps(history, ensure_ascii=False)) > cfg.context_chars
+                            or cfg.auto_compact_tokens
+                            and previous_tokens >= cfg.auto_compact_tokens
+                        )
                     ):
                         from .sessions import compact_messages
 
@@ -134,7 +138,10 @@ class Agent:
                     yield event("turn_start", turn=turns)
                     result = None
                     async for item in self.provider.stream(
-                        cfg, context, self.tools.definitions(permission, cfg.rag_enabled), system
+                        cfg,
+                        context,
+                        self.tools.definitions(permission, cfg.rag_enabled, cfg),
+                        system,
                     ):
                         if item["type"] == "delta":
                             yield {"type": "delta", "text": item["text"], "turn": turns}
@@ -154,7 +161,7 @@ class Agent:
                         {
                             "model": result.get("model", cfg.model),
                             "system": system,
-                            "tools": self.tools.definitions(permission, cfg.rag_enabled),
+                            "tools": self.tools.definitions(permission, cfg.rag_enabled, cfg),
                             "messages": context,
                         },
                         result["usage"],

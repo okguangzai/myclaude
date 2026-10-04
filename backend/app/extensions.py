@@ -13,6 +13,7 @@ import re
 import shutil
 import socket
 import sys
+import time
 import weakref
 from html.parser import HTMLParser
 from pathlib import Path
@@ -31,10 +32,14 @@ from .mcp_client import McpManager
 from .plugins import Plugins
 from .policy import tool_allowed
 from .sessions import Sessions
+from .tool_contracts import lines as text_lines
+from .tool_contracts import notebook_edit
+from .tool_contracts import validate as validate_input
 from .tools import DENIED, safe_path
 
 CATALOG = json.loads(Path(__file__).with_name("catalog.json").read_text(encoding="utf-8"))
 SPECS = {t["name"]: copy.deepcopy(t) for t in CATALOG["tools"]}
+SPECS["read_file"]["input_schema"]["properties"]["limit"]["minimum"] = 0
 # The frozen manifest omits fields supported by runtime/TaskPacket. Preserve that
 # baseline and extend only the live schema so module/file-scoped packets work.
 packet_schema = SPECS["RunTaskPacket"]["input_schema"]
@@ -343,6 +348,7 @@ class Extensions:
             self.questions.pop(key, None)
 
     async def dispatch(self, cfg, permission, name, a):
+        validate_input(name, a)
         if name.startswith("mcp__"):
             server, tool, schema = self.mcp_tool_names[name]
             Draft202012Validator(schema).validate(a)
@@ -358,10 +364,25 @@ class Extensions:
             p = safe_path(cfg.workspace, a["path"])
             if p.stat().st_size > 256000:
                 raise ValueError("文件读取上限 256 KB")
-            lines = p.read_text(encoding="utf-8").splitlines(keepends=True)
+            raw = p.read_text(encoding="utf-8")
+            if "\0" in raw[:8192]:
+                raise ValueError("file appears to be binary")
+            # Match Rust str::lines (LF/CRLF), not Python's extra Unicode separators.
+            lines = raw.split("\n")
+            lines = [(line + "\n") for line in lines[:-1]] + (
+                [lines[-1]] if lines[-1:] and lines[-1] else []
+            )
             offset, limit = a.get("offset", 0), min(a.get("limit", len(lines) or 1), 5000)
             content = "".join(lines[offset : offset + limit])
             return {
+                "type": "text",
+                "file": {
+                    "filePath": str(p),
+                    "content": "\n".join(text_lines(raw)[offset : offset + limit])[:60000],
+                    "numLines": len(lines[offset : offset + limit]),
+                    "startLine": min(offset, len(lines)) + 1,
+                    "totalLines": len(lines),
+                },
                 "path": a["path"],
                 "content": content[:60000],
                 "total_lines": len(lines),
@@ -373,6 +394,8 @@ class Extensions:
                 raise ValueError("文件编辑上限 256 KB")
             text = p.read_text(encoding="utf-8")
             old = a["old_string"]
+            if old == a["new_string"]:
+                raise ValueError("old_string and new_string must differ")
             count = text.count(old) if old else 0
             if not count or (count != 1 and not a.get("replace_all")):
                 raise ValueError(f"原文本匹配 {count} 次；需要唯一匹配或 replace_all=true")
@@ -382,42 +405,23 @@ class Extensions:
                 a["path"],
                 text.replace(old, a["new_string"], -1 if a.get("replace_all") else 1),
             )
-            return {**result, "replacements": count if a.get("replace_all") else 1}
+            return {
+                **result,
+                "replacements": count if a.get("replace_all") else 1,
+                "oldString": old,
+                "newString": a["new_string"],
+                "userModified": False,
+                "replaceAll": a.get("replace_all", False),
+            }
         if name in {"glob_search", "grep_search"}:
             return self.search(cfg, name, a)
         if name == "NotebookEdit":
             p = safe_path(cfg.workspace, a["notebook_path"])
             if p.stat().st_size > 256000:
                 raise ValueError("Notebook 编辑上限 256 KB")
-            notebook = json.loads(p.read_text(encoding="utf-8"))
-            cells, cell_id = notebook["cells"], a.get("cell_id")
-            index = next(
-                (i for i, cell in enumerate(cells) if cell.get("id", str(i)) == cell_id), None
-            )
-            mode = a.get("edit_mode", "replace")
-            if mode != "insert" and index is None:
-                raise ValueError("cell_id 未找到")
-            cell = {
-                "id": uid()[:8],
-                "cell_type": a.get("cell_type", "code"),
-                "metadata": {},
-                "source": a.get("new_source", "").splitlines(keepends=True),
-            }
-            if cell["cell_type"] == "code":
-                cell.update(execution_count=None, outputs=[])
-            if mode == "delete":
-                cells.pop(index)
-            elif mode == "insert":
-                cells.insert(index + 1 if index is not None else len(cells), cell)
-            else:
-                cell["id"] = cells[index].get("id", cell["id"])
-                cells[index] = cell
-            return await self.write(
-                cfg,
-                permission,
-                a["notebook_path"],
-                json.dumps(notebook, ensure_ascii=False, indent=2),
-            )
+            report = notebook_edit(p, a)
+            result = await self.write(cfg, permission, a["notebook_path"], report["updated_file"])
+            return {**result, **report}
         if name in {"bash", "PowerShell", "REPL"}:
             return await self.shell(cfg, permission, name, a)
         if name.startswith("Git"):
@@ -426,27 +430,65 @@ class Extensions:
             if a["duration_ms"] > 60000:
                 raise ValueError("单次等待上限 60000 毫秒")
             await asyncio.sleep(a["duration_ms"] / 1000)
-            return {"waited_ms": a["duration_ms"]}
+            return {
+                "waited_ms": a["duration_ms"],
+                "duration_ms": a["duration_ms"],
+                "message": f"Slept for {a['duration_ms']}ms",
+            }
         if name == "StructuredOutput":
             self.state("structured", {"output": a})
-            return {"accepted": True, "output": a}
+            return {
+                "accepted": True,
+                "output": a,
+                "structured_output": a,
+                "data": "Structured output provided successfully",
+            }
         if name == "TodoWrite":
-            return self.state("todos", a)
+            old = (self.state("todos") or {}).get("todos", [])
+            completed = all(todo["status"] == "completed" for todo in a["todos"])
+            self.state("todos", {"todos": [] if completed else a["todos"]})
+            return {
+                **a,
+                "oldTodos": old,
+                "newTodos": a["todos"],
+                "verificationNudgeNeeded": True
+                if completed
+                and len(a["todos"]) >= 3
+                and not any("verif" in todo["content"].lower() for todo in a["todos"])
+                else None,
+            }
         if name == "SendUserMessage":
+            attachments = []
             for path in a.get("attachments", []):
-                safe_path(cfg.workspace, path)
+                resolved = safe_path(cfg.workspace, path)
+                if not resolved.is_file():
+                    raise ValueError("附件必须是存在的文件")
+                attachments.append(
+                    {
+                        "path": str(resolved),
+                        "size": resolved.stat().st_size,
+                        "isImage": resolved.suffix.lower()
+                        in {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg"},
+                    }
+                )
             return self.jobs.put(
                 "notification",
                 uid(),
                 {
                     **a,
+                    "attachments": attachments if "attachments" in a else None,
+                    "sentAt": now(),
                     "created_at": now(),
                     "session_id": current.get().session_id if current.get() else None,
                 },
             )
         if name == "AskUserQuestion":
             if self.question_handler:
-                return {"answer": await self.question_handler(a["question"], a.get("options", []))}
+                answer = await self.question_handler(a["question"], a.get("options", []))
+                options = a.get("options", [])
+                if str(answer).isdigit() and 1 <= int(answer) <= len(options):
+                    answer = options[int(answer) - 1]
+                return {"answer": answer, "question": a["question"], "status": "answered"}
             key = uid()
             future = asyncio.get_running_loop().create_future()
             self.questions[key] = {
@@ -456,7 +498,8 @@ class Extensions:
                 "session_id": current.get().session_id if current.get() else None,
             }
             try:
-                return {"answer": await asyncio.wait_for(future, min(cfg.timeout_seconds, 600))}
+                answer = await asyncio.wait_for(future, min(cfg.timeout_seconds, 600))
+                return {"answer": answer, "question": a["question"], "status": "answered"}
             finally:
                 self.questions.pop(key, None)
         if name in {"EnterPlanMode", "ExitPlanMode"}:
@@ -466,37 +509,34 @@ class Extensions:
             ctx.plan = name == "EnterPlanMode"
             return {"plan_mode": ctx.plan, "permission": "read-only" if ctx.plan else permission}
         if name == "Config":
-            editable = {"temperature", "max_tokens", "max_turns", "context_chars"}
-            if a["setting"] not in editable:
-                raise PermissionError(
-                    "Config 工具仅可访问 temperature/max_tokens/max_turns/context_chars；连接与凭据请在设置页修改"
-                )
-            if "value" in a:
-                updated = cfg.model_copy(update={a["setting"]: a["value"]})
-                validated = type(cfg).model_validate(updated.model_dump())
-                setattr(cfg, a["setting"], getattr(validated, a["setting"]))
-            return {
-                "setting": a["setting"],
-                "value": getattr(cfg, a["setting"]),
-                "scope": "current-run",
-            }
+            from .tool_contracts import config_setting
+
+            return config_setting(self.store, cfg, a)
         if name == "ToolSearch":
-            words = a["query"].casefold().split()
-            return {
-                "tools": [
-                    t
-                    for t in self.tools.definitions(permission, cfg.rag_enabled)
-                    if any(w in json.dumps(t, ensure_ascii=False).casefold() for w in words)
-                ][: min(a.get("max_results", 8), 30)]
-            }
+            from .tool_contracts import search_tools
+
+            return search_tools(
+                a["query"],
+                a.get("max_results", 5),
+                self.tools.definitions(permission, cfg.rag_enabled, cfg),
+            )
         if name == "Skill":
             skill = self.assets.read("skills", a["skill"])
             return {
                 "skill": a["skill"],
                 "instructions": skill["content"],
                 "arguments": a.get("args", ""),
+                "args": a.get("args"),
+                "path": skill["path"],
+                "description": skill["metadata"].get("description"),
+                "prompt": skill["content"],
             }
         if name in {"Agent", "TaskCreate", "RunTaskPacket"}:
+            subagent_type = None
+            if name == "Agent":
+                from .tool_contracts import subagent_config
+
+                subagent_type, cfg = subagent_config(cfg, a.get("subagent_type"))
             if name == "RunTaskPacket":
                 from .task_packet import validate_packet
 
@@ -513,11 +553,18 @@ class Extensions:
                 permission,
                 cfg,
                 a.get("description", a.get("objective", "子 Agent")),
-                a.get("model"),
+                a.get("model") or cfg.subagent_model,
             )
             if name == "Agent":
                 try:
-                    return await self.jobs.wait(job["id"], cfg.timeout_seconds)
+                    completed = await self.jobs.wait(job["id"], cfg.timeout_seconds)
+                    return {
+                        **completed,
+                        "agentId": job["id"],
+                        "name": a.get("name") or a["description"],
+                        "subagentType": subagent_type,
+                        "model": a.get("model") or cfg.subagent_model or cfg.model,
+                    }
                 except BaseException:
                     await self.jobs.stop(job["id"])
                     raise
@@ -578,10 +625,19 @@ class Extensions:
         if name == "CronCreate":
             return self.jobs.cron(a["schedule"], a["prompt"], permission, a.get("description", ""))
         if name == "CronList":
-            return {"schedules": self.jobs.records("cron")}
+            schedules = self.jobs.records("cron")
+            return {"schedules": schedules, "crons": schedules, "count": len(schedules)}
         if name == "CronDelete":
+            item = self.jobs.record("cron", a["cron_id"])
+            if item is None:
+                raise ValueError("定时任务不存在")
             self.jobs.remove("cron", a["cron_id"])
-            return {"deleted": a["cron_id"]}
+            return {
+                "deleted": a["cron_id"],
+                "cron_id": a["cron_id"],
+                "schedule": item["schedule"],
+                "status": "deleted",
+            }
         if name in {"MCP", "McpAuth", "ListMcpResources", "ReadMcpResource"}:
             server = a.get("server")
             if not server:
@@ -628,6 +684,17 @@ class Extensions:
                 )
             return await self.mcp.call(server, permission, "list_resources")
         if name == "LSP":
+            workspace = str(Path(cfg.workspace).resolve())
+            if a["action"] == "diagnostics" and not a.get("path"):
+                cached = [
+                    r for r in self.jobs.records("lsp_diagnostics") if r["workspace"] == workspace
+                ]
+                return {
+                    "action": "diagnostics",
+                    "source": "cached",
+                    "files": cached,
+                    "count": sum(len(r["result"].get("diagnostics", [])) for r in cached),
+                }
             path = safe_path(cfg.workspace, a.get("path", "."))
             if not path.is_file() or path.stat().st_size > 256000:
                 raise ValueError("请指定 256 KB 以内的源代码文件")
@@ -639,6 +706,17 @@ class Extensions:
                 a.get("character", 0),
                 cfg.lsp_servers,
             )
+            if a["action"] == "diagnostics":
+                self.jobs.put(
+                    "lsp_diagnostics",
+                    str(path),
+                    {
+                        "workspace": workspace,
+                        "path": str(path),
+                        "result": result,
+                        "observed_at": now(),
+                    },
+                )
             if a.get("query") and isinstance(result, list):
                 result = [r for r in result if a["query"].casefold() in json.dumps(r).casefold()]
             return {"language": lsp.LANGUAGES.get(path.suffix), "result": result}
@@ -654,8 +732,16 @@ class Extensions:
         raise ValueError(f"工具没有实现：{name}")
 
     def search(self, cfg, name, a):
+        from .tool_contracts import expand_glob
+
+        started = time.monotonic()
         root = Path(cfg.workspace).resolve()
         pattern = a["pattern"]
+        patterns = expand_glob(pattern) if name == "glob_search" else []
+        matched_files, content_lines = [], []
+        mode = a.get("output_mode", "content")
+        if mode not in {"content", "count", "files_with_matches"}:
+            raise ValueError("output_mode 必须是 content/files_with_matches/count")
         if len(pattern) > 1000:
             raise ValueError("模式长度上限 1000")
         results = []
@@ -669,7 +755,13 @@ class Extensions:
             visited += 1
             relative = path.relative_to(root).as_posix()
             if name == "glob_search":
-                if fnmatch.fnmatch(relative, pattern) or path.match(pattern):
+                base_relative = path.relative_to(
+                    safe_path(cfg.workspace, a.get("path", "."))
+                ).as_posix()
+                if any(
+                    fnmatch.fnmatch(base_relative, item) or Path(base_relative).match(item)
+                    for item in patterns
+                ):
                     results.append(relative)
             else:
                 if a.get("glob") and not (
@@ -688,7 +780,8 @@ class Extensions:
                 lines = text.splitlines()
                 hits = list(compiled.finditer(text, timeout=0.03))[:300]
                 match_count += len(hits)
-                mode = a.get("output_mode", "content")
+                if hits:
+                    matched_files.append(str(path))
                 if mode == "files_with_matches" and hits:
                     results.append(relative)
                 elif mode == "count" and hits:
@@ -698,6 +791,13 @@ class Extensions:
                         number = text.count("\n", 0, hit.start())
                         before = min(a.get("-B", a.get("-C", a.get("context", 0))), 10)
                         after = min(a.get("-A", a.get("-C", a.get("context", 0))), 10)
+                        for line_index in range(
+                            max(0, number - before), min(len(lines), number + after + 1)
+                        ):
+                            prefix = str(path) + (
+                                f":{line_index + 1}:" if a.get("-n", True) else ":"
+                            )
+                            content_lines.append(prefix + lines[line_index])
                         results.append(
                             {
                                 "path": relative,
@@ -711,21 +811,49 @@ class Extensions:
                     raise ValueError("output_mode 必须是 content/files_with_matches/count")
             if len(results) >= limit + offset:
                 break
-        return {
+        report = {
             "matches": results[offset : offset + limit],
             "numMatches": match_count if name == "grep_search" else len(results),
             "truncated": visited >= 5000 or len(results) >= limit + offset,
         }
+        if name == "glob_search":
+            report.update(
+                durationMs=int((time.monotonic() - started) * 1000),
+                filenames=[str(root / path) for path in report["matches"]],
+                numFiles=len(report["matches"]),
+            )
+        else:
+            selected_files = matched_files[offset : offset + limit]
+            selected_lines = content_lines[offset : offset + limit]
+            report.update(
+                mode=mode,
+                filenames=selected_files,
+                numFiles=len(selected_files),
+                content="\n".join(selected_lines) if mode == "content" else None,
+                numLines=len(selected_lines) if mode == "content" else None,
+                appliedLimit=a.get("head_limit"),
+                appliedOffset=offset or None,
+            )
+        return report
 
     async def shell(self, cfg, permission, name, a):
         if name == "REPL":
-            language = a["language"].lower()
+            language = a["language"].strip().lower()
             if language in {"python", "py"}:
                 argv = [sys.executable, "-u", "-c", a["code"]]
             elif language in {"javascript", "js", "node"}:
                 argv = [shutil.which("node") or "node", "-e", a["code"]]
+            elif language in {"sh", "shell", "bash"}:
+                executable = shutil.which("bash") or shutil.which("sh")
+                if os.name == "nt" and shutil.which("git"):
+                    candidate = Path(shutil.which("git")).parent.parent / "bin/bash.exe"
+                    if candidate.is_file():
+                        executable = str(candidate)
+                if not executable:
+                    raise ValueError("shell runtime not found")
+                argv = [executable, "-c", a["code"]]
             else:
-                raise ValueError("REPL 支持 Python 和 JavaScript，每次调用独立进程")
+                raise ValueError("REPL 支持 Python、JavaScript 和 shell，每次调用独立进程")
             timeout = a.get("timeout_ms", 30000) / 1000
         else:
             executable = (
@@ -760,6 +888,7 @@ class Extensions:
         argv, sandbox_env, isolation = wrap(argv, cfg.workspace, sandbox_request)
 
         async def work():
+            started = time.monotonic()
             from .bash_validation import classify_command, validate_command
 
             validation = (
@@ -772,6 +901,9 @@ class Extensions:
             result = await process(argv, cfg.workspace, timeout=timeout, env=sandbox_env)
             return {
                 **result,
+                "exitCode": result["exit_code"],
+                "durationMs": int((time.monotonic() - started) * 1000),
+                **({"language": language} if name == "REPL" else {}),
                 "isolation": isolation,
                 **(
                     {"command_intent": classify_command(a["command"]), "validation": validation}
@@ -795,29 +927,48 @@ class Extensions:
 
         if name == "GitStatus":
             argv += ["status", "--short" if a.get("short", True) else "--long"]
+            if a.get("short", True):
+                argv += ["--branch"]
         elif name == "GitDiff":
             argv += ["diff", "--no-ext-diff", "--no-textconv"]
             if a.get("staged"):
                 argv += ["--cached"]
-            argv += [revision(a[k]) for k in ("commit", "commit2") if a.get(k)]
+            if a.get("commit"):
+                argv += [
+                    revision(a["commit"])
+                    + ("..." + revision(a["commit2"]) if a.get("commit2") else "")
+                ]
+            elif a.get("commit2"):
+                raise ValueError("commit2 requires commit")
         elif name == "GitLog":
-            argv += ["log", "--no-ext-diff", f"-n{min(a.get('count', 10), 100)}"]
-            if a.get("oneline", True):
+            argv += ["log", "--no-ext-diff", f"-n{min(a.get('count', 20), 100)}"]
+            if a.get("oneline", False):
                 argv += ["--oneline"]
             argv += [f"--{k}={a[k]}" for k in ("author", "since", "until") if a.get(k)]
         elif name == "GitShow":
             argv += ["show", "--no-ext-diff", "--no-textconv"]
             fmt = a.get("format", "stat" if a.get("stat") else "patch")
+            if fmt not in {"stat", "patch", "metadata"}:
+                raise ValueError("unknown GitShow format")
+            if fmt == "metadata" and a.get("path"):
+                raise ValueError('GitShow format "metadata" cannot be combined with path')
             argv += ["--stat"] if fmt == "stat" else ["--no-patch"] if fmt == "metadata" else []
-            argv += [revision(a["commit"])]
+            if a.get("path"):
+                safe_path(cfg.workspace, a["path"])
+            argv += [
+                revision(a["commit"]) + (":" + Path(a["path"]).as_posix() if a.get("path") else "")
+            ]
         else:
             argv += ["blame", "--no-textconv"]
-            if a.get("start_line"):
-                argv += ["-L", f"{a['start_line']},{a.get('end_line', a['start_line'])}"]
-        if a.get("path"):
+            if a.get("start_line") is not None and a.get("end_line") is not None:
+                argv += ["-L", f"{a['start_line']},{a['end_line']}"]
+        if a.get("path") and name != "GitShow":
             safe_path(cfg.workspace, a["path"])
             argv += ["--", a["path"]]
-        return await process(argv, cfg.workspace, timeout=20)
+        result = await process(argv, cfg.workspace, timeout=20)
+        if result["exit_code"]:
+            raise ValueError(name + " failed: " + result["stderr"][:500])
+        return {**result, "output": result["stdout"].strip()}
 
     async def worker(self, cfg, permission, name, a):
         if name == "WorkerCreate":
@@ -920,6 +1071,7 @@ class Extensions:
         return control.ready_snapshot(item) if name == "WorkerAwaitReady" else saved
 
     async def web(self, name, a):
+        started = time.monotonic()
         if name == "WebSearch":
             # Public search adapter. No invented search results when the provider blocks automation.
             query = a["query"]
@@ -967,6 +1119,7 @@ class Extensions:
                 "query": query,
                 "url": str(response.url),
                 "results": results[:8],
+                "durationSeconds": time.monotonic() - started,
             }
         url = a["url"]
         parsed = urlsplit(url)
@@ -984,7 +1137,9 @@ class Extensions:
         )
         if any(not ipaddress.ip_address(x[4][0]).is_global for x in addresses):
             raise ValueError("Web 工具只访问公网；内网服务请通过显式配置的 MCP 连接")
-        method = a.get("method", "GET") if name == "RemoteTrigger" else "GET"
+        method = a.get("method", "GET").upper() if name == "RemoteTrigger" else "GET"
+        if method not in {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"}:
+            raise ValueError("unsupported HTTP method: " + method)
         # Pin the validated destination IP so a second DNS lookup cannot rebind to a private host.
         pinned = httpx.URL(url).copy_with(host=addresses[0][4][0])
         headers = {
@@ -1001,19 +1156,31 @@ class Extensions:
             follow_redirects=False,
             extensions={"sni_hostname": parsed.hostname},
         ) as response:
-            if response.is_redirect:
+            if response.is_redirect and name != "RemoteTrigger":
                 return {
                     "status": response.status_code,
                     "redirect": response.headers.get("location"),
                     "note": "请检查后显式请求重定向地址",
                 }
-            response.raise_for_status()
+            if name != "RemoteTrigger":
+                response.raise_for_status()
             content = bytearray()
             async for chunk in response.aiter_bytes():
                 content.extend(chunk)
                 if len(content) > 1_000_000:
                     raise ValueError("HTTP 响应超过 1 MB")
             text = content.decode("utf-8", errors="replace")
+            if name == "RemoteTrigger":
+                return {
+                    "url": url,
+                    "method": method,
+                    "status_code": response.status_code,
+                    "status": response.status_code,
+                    "body": text[:8192],
+                    "content": text[:8192],
+                    "truncated": len(text) > 8192,
+                    "success": 200 <= response.status_code < 300,
+                }
             if "html" in response.headers.get("content-type", ""):
                 parser = TextParser()
                 parser.feed(text)
@@ -1024,4 +1191,9 @@ class Extensions:
                 "content": text[:40000],
                 "truncated": len(text) > 40000,
                 "prompt": a.get("prompt"),
+                "bytes": len(content),
+                "code": response.status_code,
+                "codeText": response.reason_phrase,
+                "result": text[:40000],
+                "durationMs": int((time.monotonic() - started) * 1000),
             }

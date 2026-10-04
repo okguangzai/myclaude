@@ -80,9 +80,23 @@ def load(cwd, config_home=None):
 
 
 def translate(source):
+    if not isinstance(source, dict):
+        raise ValueError("配置根节点必须为对象")
+    for section in (
+        "provider",
+        "permissions",
+        "hooks",
+        "plugins",
+        "providerFallbacks",
+        "apiTimeout",
+        "oauth",
+    ):
+        if section in source and not isinstance(source[section], dict):
+            raise ValueError(f"配置 {section} 必须为对象")
     changes, consumed = {}, set()
     mapping = {
         "model": "model",
+        "subagentModel": "subagent_model",
         "trustedRoots": "trusted_roots",
         "aliases": "model_aliases",
         "rulesImport": "rules_import",
@@ -95,6 +109,14 @@ def translate(source):
         if old in source:
             changes[new] = source[old]
             consumed.add(old)
+    from .tool_contracts import PREFERENCE_TYPES
+
+    preferences = {key: source[key] for key in PREFERENCE_TYPES if key in source}
+    if preferences:
+        changes["upstream_preferences"] = preferences
+        consumed.update(preferences)
+    if "$schema" in source:
+        consumed.add("$schema")
     provider = source.get("provider", {})
     for old, new in {
         "kind": "provider",
@@ -143,10 +165,19 @@ def translate(source):
         if event not in {"PreToolUse", "PostToolUse", "PostToolUseFailure"}:
             continue
         hooks[event] = []
+        if not isinstance(entries, list):
+            raise ValueError(f"hooks.{event} 必须为数组")
         for entry in entries:
             if isinstance(entry, str):
                 hooks[event].append(entry)
+            elif not isinstance(entry, dict):
+                raise ValueError(f"hooks.{event} 项必须为字符串或对象")
             elif "hooks" in entry:
+                if not isinstance(entry["hooks"], list) or not all(
+                    isinstance(hook, dict) and isinstance(hook.get("command"), str)
+                    for hook in entry["hooks"]
+                ):
+                    raise ValueError(f"hooks.{event}.hooks 必须为含 command 的对象数组")
                 hooks[event].extend(
                     {
                         "command": hook["command"],
