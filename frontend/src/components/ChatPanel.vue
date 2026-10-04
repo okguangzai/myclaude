@@ -97,6 +97,11 @@ async function featureAction(r: any) {
   if (r.action === "feature-preferences") {
     preferences.value = r.preferences;
     if (r.command === "voice" && r.preferences.voice) await voice();
+    else if (r.command === "voice" && recorder) {
+      await recorder.cancel();
+      recorder = null;
+      recording.value = false;
+    }
     return true;
   }
   if (r.action === "image") {

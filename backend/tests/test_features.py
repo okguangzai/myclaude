@@ -562,3 +562,15 @@ async def test_macro_recording_limits_and_removal(runtime):
     assert runtime.jobs.records("feedback") == []
     await command(runtime, "/macro remove bounded")
     assert runtime.jobs.records("macro_recording") == []
+
+
+@pytest.mark.asyncio
+async def test_macro_passes_images_to_real_agent(runtime):
+    (Path(runtime.store.current.workspace) / "picture.png").write_bytes(png())
+    sid = runtime.db.create_session()["id"]
+    runtime.jobs.put(
+        "macro", "image-review", {"commands": ["/image picture.png", "/explain 图片颜色"]}
+    )
+    result = await command(runtime, "/macro run image-review", sid)
+    assert result["result"]["steps"][-1]["response"]["result"]["status"] == "completed"
+    assert runtime.db.session(sid)["messages"][0]["attachments"]

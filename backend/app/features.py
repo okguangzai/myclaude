@@ -451,7 +451,7 @@ class Features:
                 raise ValueError("未知宏操作")
             if not row["commands"]:
                 raise ValueError("宏中没有命令")
-            values, active_session = [], session_id
+            values, active_session, pending_images = [], session_id, []
             for text in row["commands"]:
                 expanded = self.expand(text)
                 if expanded.lstrip("/").split()[0] == "macro":
@@ -470,12 +470,18 @@ class Features:
                         response["prompt"],
                         response.get("permission", permission),
                         self.store.current.model_copy(deep=True),
+                        pending_images,
                     ):
                         if event["type"] == "run_end":
                             final = event
                     if not final or final["status"] != "completed":
                         raise ValueError("宏中的 Agent 步骤失败；后续步骤未执行")
                     response = {"kind": "run", "result": final}
+                    pending_images = []
+                elif response["kind"] == "attachment":
+                    pending_images.extend(item["id"] for item in response["items"])
+                    if len(pending_images) > 4:
+                        raise ValueError("宏中每轮最多 4 张图片")
                 elif response["kind"] == "session":
                     active_session = response["session_id"]
                 elif response["kind"] == "permission":

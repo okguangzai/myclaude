@@ -12,6 +12,12 @@ async def status(request: Request):
     ext = request.app.state.extensions
     cfg = ext.store.current
     env = Media(ext).env()
+    from urllib.parse import urlsplit
+
+    dashscope_configured = bool(cfg.api_key) and urlsplit(cfg.base_url).hostname in {
+        "dashscope.aliyuncs.com",
+        "dashscope-intl.aliyuncs.com",
+    }
     return {
         "preferences": ext.features.prefs(),
         "shares": ext.features.shares(),
@@ -29,7 +35,11 @@ async def status(request: Request):
         "speech_provider": cfg.speech_provider,
         "speech_status": ext.jobs.records("speech_status"),
         "speech": {
-            service: all(env.get(service + "_" + k) for k in ("URL", "APPKEY", "TOKEN"))
+            service: (cfg.speech_provider != "nls" and dashscope_configured)
+            or (
+                cfg.speech_provider != "dashscope"
+                and all(env.get(service + "_" + k) for k in ("URL", "APPKEY", "TOKEN"))
+            )
             for service in ("ASR", "TTS")
         },
     }
