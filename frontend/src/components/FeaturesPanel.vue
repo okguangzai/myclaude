@@ -482,11 +482,12 @@ onMounted(() => action(refresh));
             </button>
           </div>
           <p class="muted">
-            服务器由 main 分支 CI/CD 发布。本机 CLI 支持 /upgrade apply
+            服务器更新由部署方管理。本机 CLI 支持 /upgrade apply
             快进升级。
           </p>
           <a
-            href="https://gitlab.csghome.fun/csg/myclaude/-/pipelines"
+            v-if="state?.pipeline_url"
+            :href="state.pipeline_url"
             target="_blank"
             rel="noopener"
             >查看发布流水线</a

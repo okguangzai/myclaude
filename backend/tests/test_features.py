@@ -445,6 +445,19 @@ async def test_all_feature_commands_have_real_dispatch(runtime):
 
 
 @pytest.mark.asyncio
+async def test_managed_upgrade_uses_deployment_configuration(tmp_path, monkeypatch):
+    from app.feature_ops import upgrade
+
+    monkeypatch.delenv("MYCLAUDE_PIPELINE_URL", raising=False)
+    assert (await upgrade(tmp_path))["pipeline_url"] is None
+    monkeypatch.setenv("MYCLAUDE_PIPELINE_URL", "https://ci.example.test/project/pipelines")
+    assert (await upgrade(tmp_path))["pipeline_url"] == "https://ci.example.test/project/pipelines"
+    for invalid in ("javascript:alert(1)", "https://user:secret@ci.example.test", "https://["):
+        monkeypatch.setenv("MYCLAUDE_PIPELINE_URL", invalid)
+        assert (await upgrade(tmp_path))["pipeline_url"] is None
+
+
+@pytest.mark.asyncio
 async def test_release_notes_and_upgrade_fast_forward(tmp_path, monkeypatch):
     from app import feature_ops
     from app.feature_ops import release_notes, upgrade

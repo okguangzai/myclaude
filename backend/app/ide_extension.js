@@ -3,7 +3,7 @@ function activate(context) {
   const output = vscode.window.createOutputChannel('MyClaude');
   context.subscriptions.push(output);
   async function configure() {
-    const url = await vscode.window.showInputBox({prompt:'MyClaude HTTPS URL',value:context.globalState.get('url','https://myclaude.csghome.fun')});
+    const url = await vscode.window.showInputBox({prompt:'MyClaude HTTPS URL',value:context.globalState.get('url','http://127.0.0.1:8000')});
     if (!url) return;
     const parsed = new URL(url);
     if (parsed.protocol !== 'https:' && !['localhost','127.0.0.1'].includes(parsed.hostname)) throw Error('Use HTTPS for remote servers');

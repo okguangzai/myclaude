@@ -127,8 +127,10 @@ npm.cmd run build
 
 原项目参考基线为 [ultraworkers/claw-code](https://github.com/ultraworkers/claw-code/tree/08106b0c3771ef5b4a5aa176acccd460e88b7325)。上游版权属于 UltraWorkers and Claw Code contributors；csg 的署名对应本项目的 Python 重构、Vue 前端及新增实现。
 
-## 服务器与自动发布
+## 分支与部署
 
-本节描述作者的部署环境，不是普通用户本地运行的前置要求。私有仓库：<https://gitlab.csghome.fun/csg/myclaude>。服务器入口：<https://myclaude.csghome.fun/>。
-推送到上述 GitLab 仓库的 `main` 分支会触发测试、镜像构建和 Kubernetes 发布；GitHub 仓库没有配置自动发布工作流。复制仓库不会取得作者的 Runner、CI 密钥或集群权限。自行部署时需替换 `deploy/` 和 `.gitlab-ci.yml` 中的域名、镜像仓库及环境配置，详见 [GitLab 部署与运维](docs/GitLab部署与运维.md)。
-Linux 流水线执行后端测试、前端测试和 Vue 构建；历史提交、测试数量及云模型、Embedding、Qdrant 验证见 [部署验收记录](docs/部署验收记录.md)，当前功能边界见 [完整功能使用与验收](docs/完整功能使用与验收.md)。
+公开 `main` 分支提供通用应用代码、文档、测试和 Dockerfile，不包含维护者专用的 GitLab 流水线、集群清单或服务器运维配置。
+
+维护者的 CI/CD 和生产环境配置保存在独立私有 GitLab 仓库的 `mygit` 分支，不推送到本公开仓库。GitHub 的分支不能独立设置可见性；私有性由仓库权限提供。
+
+自行部署可使用通用 Dockerfile，并自行管理模型凭据、持久化存储与访问认证。容器的 `MYCLAUDE_PIPELINE_URL` 可选环境变量用于显示自己的 HTTPS 发布流水线链接；未配置时不显示该入口。克隆或 Fork 本项目不会触发维护者的生产发布。

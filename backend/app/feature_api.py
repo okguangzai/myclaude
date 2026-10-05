@@ -2,6 +2,7 @@ from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 
+from .feature_ops import deployment_pipeline_url
 from .media import MAX_UPLOAD, Media
 
 router = APIRouter(prefix="/api/features")
@@ -19,6 +20,7 @@ async def status(request: Request):
         "dashscope-intl.aliyuncs.com",
     }
     return {
+        "pipeline_url": deployment_pipeline_url(),
         "preferences": ext.features.prefs(),
         "shares": ext.features.shares(),
         "aliases": ext.features.aliases(),

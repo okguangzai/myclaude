@@ -53,7 +53,7 @@ def verify(access, live=False, previous=None):
             report["embedding"] = request("POST", "api/connections/embedding").json()
             version = report["health"]["version"]
             marker = secrets.token_hex(8)
-            document = f"验收记录 {marker}：MyClaude {version} 通过 main 自动发布，访问域名为 myclaude.csghome.fun，知识库使用 Qdrant。"
+            document = f"验收记录 {marker}：MyClaude {version} 部署验收，访问地址为 {url}，知识库使用 Qdrant。"
             report["document"] = request(
                 "POST",
                 "api/documents",

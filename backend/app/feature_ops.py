@@ -5,12 +5,14 @@ from __future__ import annotations
 import difflib
 import hashlib
 import json
+import os
 import re
 import sqlite3
 import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from .execution import process, require
 from .git_context import git
@@ -203,14 +205,25 @@ async def release_notes(workspace, reference=None):
     }
 
 
+def deployment_pipeline_url():
+    value = os.environ.get("MYCLAUDE_PIPELINE_URL", "").strip()
+    try:
+        url = urlsplit(value)
+    except ValueError:
+        return None
+    if url.scheme == "https" and url.hostname and not url.username and not url.password:
+        return value
+    return None
+
+
 async def upgrade(root, apply=False, permission="read-only"):
     root = Path(root)
     if not (root / ".git").exists():
         return {
             "mode": "managed-ci",
             "version": "0.8.0",
-            "message": "服务器由 main 流水线测试、备份并发布；网页可重新加载当前版本。",
-            "pipeline_url": "https://gitlab.csghome.fun/csg/myclaude/-/pipelines",
+            "message": "容器实例由部署方更新；网页可重新加载当前版本。",
+            "pipeline_url": deployment_pipeline_url(),
             "client_action": "reload",
         }
     if apply:
