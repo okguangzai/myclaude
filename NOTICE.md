@@ -2,7 +2,7 @@
 
 - 项目名称：MyClaude
 - Python 重构、Vue 前端及新增实现的代码编写与维护：csg
-- 项目地址：https://github.com/WhosU-Dady/myclaude
+- 项目地址：https://github.com/okguangzai/myclaude
 - 许可证：[MIT License](LICENSE)
 
 ## 上游来源
@@ -20,6 +20,6 @@
 
 引用、转载或介绍基于本项目的实现时，请注明来源，例如：
 
-> MyClaude — csg。https://github.com/WhosU-Dady/myclaude 。基于 ultraworkers/claw-code 的 Python 重构与功能复刻。
+> MyClaude — csg。https://github.com/okguangzai/myclaude 。基于 ultraworkers/claw-code 的 Python 重构与功能复刻。
 
 本文件提供作者与来源信息，引用格式属于建议。复制或分发代码或实质性部分必须保留的版权和许可声明，以 LICENSE 中的 MIT 条款为准。

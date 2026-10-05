@@ -2,7 +2,7 @@
 
 MyClaude 是由 **csg** 编写和维护的 Python Agent 项目，基于开源项目 [ultraworkers/claw-code](https://github.com/ultraworkers/claw-code) 进行 Python 重构与功能复刻。它以 Python 实现原 Rust 项目的运行时，并增加 Vue Web 工作台，支持模型配置、任务执行、工具调用与知识库问答。
 
-公开仓库：[WhosU-Dady/myclaude](https://github.com/WhosU-Dady/myclaude)。代码编写与维护：**csg**（GitHub：[@WhosU-Dady](https://github.com/WhosU-Dady)）。
+公开仓库：[okguangzai/myclaude](https://github.com/okguangzai/myclaude)。代码编写与维护：**csg**（GitHub：[@okguangzai](https://github.com/okguangzai)）。
 
 这里的“复刻 Claude”指 Claude Code 风格的编程助手与 Agent 工作流。项目不是 Anthropic 官方产品，也不是 Claude 模型或 Claude Code 官方源码的移植；实际参考的是上述开源 claw-code 项目。模型通过 API 接入，可以使用兼容的云模型服务，不要求使用 Claude 模型。
 
@@ -79,7 +79,7 @@ npm.cmd run build
 
 引用本项目、转载代码或介绍基于本项目的实现时，请注明项目名称、作者和仓库地址，建议使用：
 
-> 基于 MyClaude，由 csg 编写和维护。项目地址：https://github.com/WhosU-Dady/myclaude 。MyClaude 基于 ultraworkers/claw-code 进行 Python 重构与功能复刻。
+> 基于 MyClaude，由 csg 编写和维护。项目地址：https://github.com/okguangzai/myclaude 。MyClaude 基于 ultraworkers/claw-code 进行 Python 重构与功能复刻。
 
 上述引用格式是项目的署名与来源说明建议；许可证的强制条件以 [LICENSE](LICENSE) 为准，不额外修改 MIT 条款。上游来源、版权归属和引用信息见 [NOTICE.md](NOTICE.md)。
 
