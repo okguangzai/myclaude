@@ -21,18 +21,60 @@ MyClaude 是由 **csg** 编写和维护的 Python Agent 项目，基于开源项
 
 v0.8 新增原版 25 个占位命令的实际实现和 Vue 管理页，见 [完整功能使用与验收](docs/完整功能使用与验收.md)。此前 v0.7 补齐 CLI 本地命令、工具返回与参数、子 Agent 类型及模型、会话管理、Config 偏好、LSP/Cron 和 PDF/Lane 辅助模块。11 个 crate 职责均有 Python 对应实现；原版功能、Python/Vue 适配和原版占位项见 [迁移收口清单](docs/迁移收口清单.md)。保留原 Rust 实际执行生成的差分夹具，日常运行和 CI 无需 Rust。
 
-## 现在开始
+## 快速开始
+
+### 环境准备
+
+- 安装 Git、Python 3.11 和 Node.js 22（含 npm），并确认它们可在终端中运行。
+- Windows 使用 PowerShell；Linux/macOS 使用下方手动启动命令。
+- 首次安装需要联网下载 Python 与 npm 依赖。普通聊天不需要 Rust、Docker、GitLab、Harbor 或 Qdrant。
+- 使用真实模型需要自己的 API Key，以及对应服务可用的模型 ID。没有 Key 也可以先启动网页，再进入设置完成配置。
+
+### Windows
 
 ```powershell
-cd C:\csg\work\project\myCalude
+git clone https://github.com/okguangzai/myclaude.git
+cd myclaude
+# 仅在首次配置时复制；已有 .env 时不要覆盖。
+Copy-Item .env.example .env
+.\install.ps1
 .\start.ps1
 ```
 
-打开 [MyClaude 网页](http://127.0.0.1:8000)，从「Agent 工作台」开始，在「设置」中配置模型服务地址和模型名。密钥通过本机私有配置或服务器 Secret 保存，不提交到 Git。新环境需要配置自己的模型凭据，仓库不包含可用 API Key。
+打开 [MyClaude 网页](http://127.0.0.1:8000)，进入「设置」，填写模型服务地址、模型名和 API Key，保存后点击「测试模型」，成功后即可开始聊天。OpenAI 兼容模型应支持工具调用，才能使用 Agent 的文件操作等能力。这里的 `openai` 表示接口协议，并不限定模型供应商。
 
-现有部署的主模型为百炼 `qwen-flash`，图片模型为 `qwen3-vl-flash`，Embedding 为 `text-embedding-v4`；服务器通过集群内网访问 Qdrant。本地开发需配置本机可达的 Qdrant 地址，或按使用指南配置 SSH 转发。
+也可以在执行 `install.ps1` 前编辑 `.env`，填写 `LLM_URL`、`LLM_MODEL`、`LLM_API_KEY`。`.env` 只在首次生成 `.local/settings.json` 时导入；之后修改配置请使用网页设置。仓库不包含可用 API Key、作者的登录密码或知识库访问凭据。
 
-首次安装或迁移到另一台电脑时先执行 `install.ps1`。停止服务执行 `stop.ps1`。网页生产构建由 FastAPI 同时托管，无需同时启动两个服务。
+`install.ps1` 创建虚拟环境、安装锁定依赖、构建前端并初始化配置。以后启动只需运行 `start.ps1`，停止运行 `stop.ps1`。如果 PowerShell 提示禁止执行脚本，可分别使用 `powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1` 和对应的 `start.ps1` 命令，仅对这次进程生效。
+
+### Linux / macOS
+
+```bash
+git clone https://github.com/okguangzai/myclaude.git
+cd myclaude
+cp .env.example .env
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -r backend/requirements.lock.txt
+(cd frontend && npm ci && npm run build)
+.venv/bin/python scripts/bootstrap_config.py
+.venv/bin/python backend/run_server.py
+```
+
+保持终端运行，打开同一个本地地址；按 `Ctrl+C` 停止。Python 需支持 `venv`，部分 Linux 发行版需先安装对应系统软件包。网页构建后由 FastAPI 同时托管，无需同时启动两个服务。生产容器已在 Linux 验证；macOS 原生安装仍需在对应设备上验证。
+
+### 按需启用的功能
+
+| 功能 | 额外配置 |
+| --- | --- |
+| 普通对话、Agent 工具调用 | 一个支持工具调用的对话模型和自己的 API Key；子 Agent 默认复用主模型 |
+| 知识库 | Embedding 模型、自己可访问的 Qdrant 地址和必要凭据；暂不使用时在设置中关闭 RAG |
+| 图片识别 | 支持图片输入的视觉模型；文本模型不一定支持 |
+| 语音识别、合成 | 对应语音服务及权限，配置见完整功能文档 |
+| MCP、SSH、外部工具 | 各服务的地址、凭据和运行依赖；SSH 场景另需 OpenSSH 客户端 |
+
+默认模型配置以百炼为例。作者部署使用 `qwen-flash`、`qwen3-vl-flash` 和 `text-embedding-v4`，这些名称不是免费服务承诺。作者的集群内网 Qdrant 地址不能直接用于他人的电脑；新用户须配置自己的实例。
+
+启动后可访问 `http://127.0.0.1:8000/api/health` 确认服务状态。端口 8000 被占用时，先确认占用程序；安装失败时检查 Python/Node 版本和依赖源网络。Windows 启动错误记录在 `.local/server.stderr.log`。仅网页能打开不等于模型、知识库或所有外部工具已配置成功。
 
 ## 文档
 
@@ -87,6 +129,6 @@ npm.cmd run build
 
 ## 服务器与自动发布
 
-私有仓库：<https://gitlab.csghome.fun/csg/myclaude>。服务器入口：<https://myclaude.csghome.fun/>。
-`main` 推送触发测试、镜像构建和 Kubernetes 发布，详见 [GitLab 部署与运维](docs/GitLab部署与运维.md)。
+本节描述作者的部署环境，不是普通用户本地运行的前置要求。私有仓库：<https://gitlab.csghome.fun/csg/myclaude>。服务器入口：<https://myclaude.csghome.fun/>。
+推送到上述 GitLab 仓库的 `main` 分支会触发测试、镜像构建和 Kubernetes 发布；GitHub 仓库没有配置自动发布工作流。复制仓库不会取得作者的 Runner、CI 密钥或集群权限。自行部署时需替换 `deploy/` 和 `.gitlab-ci.yml` 中的域名、镜像仓库及环境配置，详见 [GitLab 部署与运维](docs/GitLab部署与运维.md)。
 Linux 流水线执行后端测试、前端测试和 Vue 构建；历史提交、测试数量及云模型、Embedding、Qdrant 验证见 [部署验收记录](docs/部署验收记录.md)，当前功能边界见 [完整功能使用与验收](docs/完整功能使用与验收.md)。
